@@ -65,9 +65,9 @@ The root user created during initial setup is `webadmin`. The password is automa
 docker logs caddy 2>&1 | grep webadmin
 ```
 
-The output will look something like:
+The output will look something like the below example. Look for the `secret`.
 ```
-#TODO
+{"level":"info","ts":1664823133.2475781,"logger":"security","msg":"created default admin user for the database","username":"webadmin","email":"webadmin@localdomain.local","secret":"028bac75-56a6-44e2-85c8-807db94f446a","roles":["authp/admin"]}
 ```
 
 **Change this auto-generated password!** Use the *Portal Settings* link on the authentication portal page.
