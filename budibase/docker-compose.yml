@@ -125,14 +125,6 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
-# volumes:
-#   couchdb3_data:
-#     driver: local
-#   minio_data:
-#     driver: local
-#   redis_data:
-#     driver: local
-
 networks:
   default:
     name: $DOCKER_MY_NETWORK
