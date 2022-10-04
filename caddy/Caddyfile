@@ -1,9 +1,17 @@
+# ##### CADDYFILE #########################################
+# Ref: https://caddyserver.com/docs/caddyfile/options
+
+# ===== GLOBAL OPTIONS BLOCK ==============================
 {
+	# ----- General Options -------------------------------
 	debug
 
-	local_certs
+	# ----- TLS Settings ----------------------------------
+	email {env.EMAIL_FOR_ACME}
+	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	local_certs # issue internal certs (for local / dev environments)
 
-	# ----- Caddy Security Settings ----------
+	# ----- Caddy Security Settings -----------------------
 
 	order authenticate before respond
 	order authorize before basicauth
@@ -54,27 +62,53 @@
 	}
 }
 
+# ===== SNIPPETS ==========================================
+(redirect) {
+	@http {
+		protocol http
+	}
+	redir @http https://{host}{uri}
+}
+
+# ===== SITE BLOCKS =======================================
+
+# ----- Initial Caddy Testing -----------------------------
+# test-whoami.{$MY_DOMAIN} {
+# 	reverse_proxy whoami:80
+# }
+
+# test-nginx.{$MY_DOMAIN} {
+# 	reverse_proxy nginx:80
+# }
+
+# ----- Caddy-Security Auth & Portal ----------------------
 auth.{$MY_DOMAIN} {
 	authenticate with myportal
 }
 
-test.{$MY_DOMAIN} {
-	# route /guests* {
-	# 	authorize with guests_policy
-	# 	respond * "test - guests only" 200
-	# }
+#TODO WIP
+# test.{$MY_DOMAIN} {
+# 	# route /guests* {
+# 	# 	authorize with guests_policy
+# 	# 	respond * "test - guests only" 200
+# 	# }
 
-	# route /users* {
-	# 	authorize with users_policy
-	# 	respond * "test - users" 200
-	# }
+# 	# route /users* {
+# 	# 	authorize with users_policy
+# 	# 	respond * "test - users" 200
+# 	# }
 
-	# route /admins* {
-	# 	authorize with admins_policy
-	# 	respond * "test - admins" 200
-	# }
+# 	# route /admins* {
+# 	# 	authorize with admins_policy
+# 	# 	respond * "test - admins" 200
+# 	# }
 
-	route {
-		respond "test is running"
-	}
+# 	route {
+# 		respond "test is running"
+# 	}
+# }
+
+# ----- BUDIBASE ------------------------------------------
+budibase.{$MY_DOMAIN} {
+	reverse_proxy bbproxy:10000
 }

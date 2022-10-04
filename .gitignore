@@ -1,3 +1,6 @@
 caddy/.env
 caddy/data
 caddy/config
+budibase/data
+.gitignore
+budibase/.env

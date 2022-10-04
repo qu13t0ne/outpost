@@ -15,8 +15,6 @@ Paragraph. *(Omit heading and paragraph if one-line summary above is enough.)*
 
 * * * * *
 
-[[_TOC_]]
-
 ## Features
 
 * [Caddy v2 Reverse Proxy](./caddy/readme.md), including Caddy-Security for user authentication & MFA

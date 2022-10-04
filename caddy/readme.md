@@ -1,7 +1,5 @@
 # Caddy Reverse Proxy
 
-[[_TOC_]]
-
 ## Key Commands
 
 ### Reload Caddy Config
@@ -38,7 +36,7 @@ Make the following changes to the template:
 
 ### Basic Functionality Test
 
-Stand up the Caddy container as well as two test containers, `whoami` and `nginx`. Ensure the `Test Containers` section in the `Caddyfile` is uncommented before proceeding.
+Stand up the Caddy container as well as two test containers, `whoami` and `nginx`. Ensure the `Initial Caddy Testing` section in the `Caddyfile` is uncommented before proceeding.
 ```
 docker compose up -d
 docker compose -f whoami-compose.yml up -d
