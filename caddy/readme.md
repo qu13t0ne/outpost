@@ -1,4 +1,4 @@
-# Caddy Reverse Proxy
+# Caddy (Reverse Proxy)
 
 ## Key Commands
 
@@ -9,7 +9,7 @@ The following command reloads caddy config after changes to the Caddyfile.
 docker exec -w /etc/caddy caddy caddy reload
 ```
 
-## Initial Setup
+## Setup
 
 ### Create new docker network
 
@@ -48,11 +48,13 @@ Monitor Caddy logs for successful generation of TLS certs. (Not applicable if do
 docker logs caddy
 ```
 
-Once the test is successful, disable test containers. Comment out the relevant config in the `Caddyfile` and reload it.
+Once the test is successful, disable test containers. 
 ```
 docker compose -f whoami-compose.yml down
 docker compose -f nginx-compose.yml down
 ```
+
+Comment out the relevant config in the `Caddyfile` and reload it.
 
 ## Caddy Security
 
@@ -122,7 +124,8 @@ All of this JSON can be created using the script [generateUserConfig.sh](./gener
 
 Whenever the `users.json` file is updated, reload Caddy to apply the changes.
 
-## References
+## Resources
 
+- https://caddyserver.com/
 - https://github.com/DoTheEvo/selfhosted-apps-docker/tree/master/caddy_v2
 - https://authp.github.io/

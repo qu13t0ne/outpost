@@ -112,3 +112,8 @@ auth.{$MY_DOMAIN} {
 budibase.{$MY_DOMAIN} {
 	reverse_proxy bbproxy:10000
 }
+
+# ----- POSTGRESQL & PGADMIN ------------------------------
+pgadmin.{$MY_DOMAIN} {
+	reverse_proxy pgadmin:80
+}

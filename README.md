@@ -1,11 +1,18 @@
 # OUTPOST - A Self-Sufficient, Self-Hosted Cloud Setup
 ```
-   .oOOOo  uUU uUU tTTTTTTT pPPPPp  .oOOOo  .sSSSs tTTTTTTT 
-  oOO"oOO uUU uUU    tTT   pPP.pPP oOO"oOO sSS" SS   tTT    
- oOO oOO uUU uUU    tTT   pPPPPP" oOO oOO  SSSSs    tTT     
-oOO.oOO uUU.uUU    tTT   pPP     oOO.oOO sS .sSS   tTT      
-OOOOO"  UUUUU"    tTT   pPP      OOOOO"  SSSSS"   tTT       
+ ▄▄▄▄▄▄▄▄▄▄▄  ▄         ▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄ 
+▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
+▐░█▀▀▀▀▀▀▀█░▌▐░▌       ▐░▌ ▀▀▀▀█░█▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀▀▀  ▀▀▀▀█░█▀▀▀▀ 
+▐░▌       ▐░▌▐░▌       ▐░▌     ▐░▌     ▐░▌       ▐░▌▐░▌       ▐░▌▐░▌               ▐░▌     
+▐░▌       ▐░▌▐░▌       ▐░▌     ▐░▌     ▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄▄▄      ▐░▌     
+▐░▌       ▐░▌▐░▌       ▐░▌     ▐░▌     ▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌     ▐░▌     
+▐░▌       ▐░▌▐░▌       ▐░▌     ▐░▌     ▐░█▀▀▀▀▀▀▀▀▀ ▐░▌       ▐░▌ ▀▀▀▀▀▀▀▀▀█░▌     ▐░▌     
+▐░▌       ▐░▌▐░▌       ▐░▌     ▐░▌     ▐░▌          ▐░▌       ▐░▌          ▐░▌     ▐░▌     
+▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌     ▐░▌     ▐░▌          ▐░█▄▄▄▄▄▄▄█░▌ ▄▄▄▄▄▄▄▄▄█░▌     ▐░▌     
+▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌     ▐░▌     ▐░▌          ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌     ▐░▌     
+ ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀       ▀       ▀            ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀       ▀      
 ```
+<!-- Ascii Text: Electronic font from https://www.coolgenerator.com/ascii-text-generator -->
 
 ## Description
 
@@ -15,58 +22,39 @@ Paragraph. *(Omit heading and paragraph if one-line summary above is enough.)*
 
 * * * * *
 
-## Features
-
-* [Caddy v2 Reverse Proxy](./caddy/readme.md), including Caddy-Security for user authentication & MFA
-
-The main features include:
-
-* TBD
-
-## Prerequisites / Dependencies
-
-* As needed
-
 ## Installation and Setup
 
-* Clone the repo into a working folder.
-* Any other preparatory steps
+- Prep host system
+   - Linux preferred for a server. I tend to run Debian-based distros, but any Linux distro should work fine.
+   - Since stuff is Docker-based, can also be run on workstation as `localhost`, including MacOS (partially tested) and Windows (if you have to)
+- Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/)
+- Follow startup instructions on each of the component readme pages linked below.
 
-## Execution
+## Components
 
-* How to run the program
-* Step-by-step bullets
-```
-code blocks for commands
-```
+### Core Infrastructure & Security
 
-## Post-Execution
+- **[Caddy v2 Reverse Proxy](./caddy/readme.md)**
+   - Including Caddy-Security for user authentication & MFA
 
-* As needed
+### Databases
 
-## Additional Notes
+- **[PostgreSQL and pgAdmin](./postgres/readme.md)**
 
-* TBD
+### Apps & Services
 
-## Todo
-
-* TBD
+- **[Budibase](./budibase/readme.md)** low-code platform
 
 ## Metadata
 
-**Contributors**
+**Created By Mike Owens** | [GitHub](https://github.com/mikeo85) ~ [GitLab](https://gitlab.com/mikeo85) ~ [Twitter](https://twitter.com/quietmike8192)  
+(With plenty of help from other online resources and repos that I try to acknowledge wherever possible.)
 
-* Mike Owens | [GitLab](https://gitlab.com/mikeo85) ~ [GitHub](https://github.com/mikeo85) ~ [Twitter](https://twitter.com/quietmike8192)
-
-**License: [MIT](LICENSE)** | *For info about open source licenses: [ChooseALicense.com](https://choosealicense.com) / [Open Source Initiative](https://opensource.org/licenses) / [Developer's Guide](https://www.toptal.com/open-source/developers-guide-to-open-source-licenses)*
+**License: [MIT](LICENSE)** | *About open source licenses: [ChooseALicense.com](https://choosealicense.com) / [Open Source Initiative](https://opensource.org/licenses) / [Developer's Guide](https://www.toptal.com/open-source/developers-guide-to-open-source-licenses)*
 
 <!-- **Version History:** See [commits](../../commits) or [release history](../../releases). -->
 
 ## Acknowledgments
 
-*Inspiration, code snippets, etc.*
-
-* [DomPizzie/README-Template.md](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
-* [dbader/readme-template](https://github.com/dbader/readme-template)
-* [ASCII art](http://www.patorjk.com/software/taag)
-* [TBD](URL)
+- https://github.com/DoTheEvo/selfhosted-apps-docker
+- https://github.com/docker/awesome-compose
