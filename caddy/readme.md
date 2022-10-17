@@ -8,8 +8,13 @@ The following command reloads caddy config after changes to the Caddyfile.
 ```
 docker exec -w /etc/caddy caddy caddy reload
 ```
+Any other `caddy` commands can be run in the container by replacing `reload` above with the relevant command.
 
 ## Setup
+
+**Notes:**
+- This setup assumes using Cloudflare as nameserver & DNS management for your domain. Thus, the Cloudflare DNS module is included in the Dockerfile build for this Caddy instance and the Caddyfile is configured to use a Cloudflare API key.
+- The Acme DNS challenge is enabled for TSL certificate generation. TLS certificates can therefore be generated for sites and services that are not internet-routable (i.e. internal-only sites). This is not possible if using the HTTP challenge.
 
 ### Create new docker network
 
@@ -17,26 +22,52 @@ docker exec -w /etc/caddy caddy caddy reload
 docker network create proxy_net
 ```
 
+### Set up Cloudflare DNS ACME Cert Generation
+
+- Set up DNS records in Cloudflare for your domain, as shown below. This creates a primary `A` record for the domain and a wildcard `CNAME` record for first-level subdomains. Start by leaving proxy disabled, as it simplifies any initial troubleshooting. Once certs are generating and sites are routing successfully, proxy can be enabled.
+
+| **Type** | **Name**   | **Content** | **Proxy Status** |
+|----------|------------|-------------|------------------|
+| A        | {MyDomain} | {ServerIP}  | Disabled         |
+| CNAME    | *          | {MyDomain}  | Disabled         |
+
+- Create an API token in Cloudflare for Caddy to authenticate and perform the necessary DNS verifications. Copy or leave this page open, you'll need it in the next step.
+  - Ref [this documentation page](https://caddyserver.com/docs/modules/dns.providers.cloudflare) and [this article](https://samjmck.com/en/blog/using-caddy-with-cloudflare/#using-a-lets-encrypt-certificate) as needed.
+
 ### Configure .env file
 
 Create a `.env` file using the template below.
-```
-MY_DOMAIN=localhost
+```shell
 DOCKER_MY_NETWORK=proxy_net
-CADDY_VERSION=2
-JWT_SHARED_TOKEN=123456789
+
+# ROUTING & TLS CONFIG
+MY_DOMAIN=domain.tld
+EMAIL_FOR_ACME=replace_me
+CF_API_TOKEN=replace_me
+
+# CADDY SECURITY CONFIG
+JWT_SHARED_TOKEN=replace_me
 ```
-#TODO UPDATE THIS
 
 Make the following changes to the template:
 - Add relevant domain name as `MY_DOMAIN`
-- Update `CADDY_VERSION` as appropriate
+- Add email for cert generation & renewal notifications
+- Paste the Cloudflare API token generated in the previous step
 - Create a `JWT_SHARED_TOKEN` using a random alphanumeric string generator such as [this](https://www.grc.com/passwords.htm).
 
+### Basic Functionality Tests
 
-### Basic Functionality Test
+#### Edit Caddyfile
+For initial testing, make sure the Caddyfile is as follows:
+- Uncomment `debug`
+- Uncomment Let's Encrypt staging URL
+- Uncomment all sites in the `Initial Caddy Testing` section, i.e.
+  - `test1.{$MY_DOMAIN}`
+  - `test2.{$MY_DOMAIN}`
+  - `test3.{$MY_DOMAIN}`
 
-Stand up the Caddy container as well as two test containers, `whoami` and `nginx`. Ensure the `Initial Caddy Testing` section in the `Caddyfile` is uncommented before proceeding.
+#### Stand up the containers
+Stand up the Caddy container as well as two test containers, `whoami` and `nginx`.
 ```
 docker compose up -d
 docker compose -f whoami-compose.yml up -d
@@ -45,16 +76,46 @@ docker compose -f nginx-compose.yml up -d
 
 Monitor Caddy logs for successful generation of TLS certs. (Not applicable if domain is `localhost`.)
 ```
-docker logs caddy
+docker logs caddy -f
 ```
 
-Once the test is successful, disable test containers. 
+In your browser (suggestion: use a *Private Browsing* window to avoid caching issues), navigate to the `test1`, `test2`, and `test3` subdomains. Depending on the browser, you may need to click through some warning messages about untrusted certificates, since at this point you're still using the Let's Encrypt Staging server for certificate generation. This is expected. The goal here is to make sure all three sites are successfully routable.
+- `test1` ==> "Hello, World!"
+- `test2` ==> whoami container
+- `test3` ==> nginx container
+
+#### Enable Cloudflare Proxy
+
+In Cloudflare, edit the DNS records created above to change Proxy Status to 'proxied'. 
+
+Retest all three sites.
+
+Use `Ctrl+C` to stop watching the Caddy logs if you haven't done so already.
+
+#### Switch to Production TLS Certificates
+
+Assuming all of the above steps worked, edit the `Caddyfile` to comment out the Let's Encrypt Staging URL.
+
+Take down the Caddy container, delete generated `config/` and `data/` directories to ensure you get new production certs, and restart the container.
+
+```shell
+docker compose down
+sudo rm -rf config/ data/
+docker compose up -d
+```
+Watch the Caddy logs if desired. 
+
+Use a new Private Browsing instance to try the three test sites again.
+
+#### Testing Cleanup
+
+Disable test containers. 
 ```
 docker compose -f whoami-compose.yml down
 docker compose -f nginx-compose.yml down
 ```
 
-Comment out the relevant config in the `Caddyfile` and reload it.
+Comment out the initial Caddy testing config in the `Caddyfile` and the `debug` setting, then reload it.
 
 ## Caddy Security
 
