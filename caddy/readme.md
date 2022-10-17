@@ -88,7 +88,7 @@ Assuming all of the above steps worked, edit the `Caddyfile` to comment out the 
 
 Take down the Caddy container, delete generated `config/` and `data/` directories to ensure you get new production certs, and restart the container.
 
-```shell
+```
 docker compose down
 sudo rm -rf config/ data/
 docker compose up -d
@@ -173,7 +173,7 @@ Where:
 **All of this JSON can be created using the script [generateUserConfig.sh](./generateUserConfig.sh)**.
 
 Whenever the `users.json` file is updated, reload Caddy to apply the changes.
-*Note: Sometimes for whatever reason this doesn't seem to work. In these cases, just restart the container with `docker compose restart`.
+*Note: Sometimes for whatever reason this doesn't seem to work. In these cases, just restart the container with `docker compose restart`.*
 
 ## Resources
 
