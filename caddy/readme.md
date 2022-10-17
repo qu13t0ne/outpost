@@ -36,17 +36,10 @@ docker network create proxy_net
 
 ### Configure .env file
 
-Create a `.env` file using the template below.
-```shell
-DOCKER_MY_NETWORK=proxy_net
-
-# ROUTING & TLS CONFIG
-MY_DOMAIN=domain.tld
-EMAIL_FOR_ACME=replace_me
-CF_API_TOKEN=replace_me
-
-# CADDY SECURITY CONFIG
-JWT_SHARED_TOKEN=replace_me
+Create a `.env` file from the included template [.env.template](./.env.template).
+Edit the contents as appropriate and indicated in the file.
+```
+cp .env.template .env
 ```
 
 Make the following changes to the template:
@@ -64,13 +57,11 @@ For initial testing, make sure the Caddyfile is as follows:
 - Uncomment all sites in the `Initial Caddy Testing` section, i.e.
   - `test1.{$MY_DOMAIN}`
   - `test2.{$MY_DOMAIN}`
-  - `test3.{$MY_DOMAIN}`
 
 #### Stand up the containers
-Stand up the Caddy container as well as two test containers, `whoami` and `nginx`.
+Stand up the Caddy container as well as the `nginx` test container.
 ```
 docker compose up -d
-docker compose -f whoami-compose.yml up -d
 docker compose -f nginx-compose.yml up -d
 ```
 
@@ -79,16 +70,15 @@ Monitor Caddy logs for successful generation of TLS certs. (Not applicable if do
 docker logs caddy -f
 ```
 
-In your browser (suggestion: use a *Private Browsing* window to avoid caching issues), navigate to the `test1`, `test2`, and `test3` subdomains. Depending on the browser, you may need to click through some warning messages about untrusted certificates, since at this point you're still using the Let's Encrypt Staging server for certificate generation. This is expected. The goal here is to make sure all three sites are successfully routable.
+In your browser (suggestion: use a *Private Browsing* window to avoid caching issues), navigate to the `test1` and `test2` subdomains. Depending on the browser, you may need to click through some warning messages about untrusted certificates, since at this point you're still using the Let's Encrypt Staging server for certificate generation. This is expected. The goal here is to make sure both sites are successfully routable.
 - `test1` ==> "Hello, World!"
-- `test2` ==> whoami container
-- `test3` ==> nginx container
+- `test2` ==> nginx container
 
 #### Enable Cloudflare Proxy
 
 In Cloudflare, edit the DNS records created above to change Proxy Status to 'proxied'. 
 
-Retest all three sites.
+Retest both sites.
 
 Use `Ctrl+C` to stop watching the Caddy logs if you haven't done so already.
 
@@ -109,9 +99,8 @@ Use a new Private Browsing instance to try the three test sites again.
 
 #### Testing Cleanup
 
-Disable test containers. 
+Disable test container. 
 ```
-docker compose -f whoami-compose.yml down
 docker compose -f nginx-compose.yml down
 ```
 
@@ -181,9 +170,10 @@ Where:
 - `<Enter Username>` and `<Enter Email>` = Enter user info
 - `<Enter Password Hash>` = Generate a bcrypt hash for the user password at https://bcrypt.online or through any other preferred method. Use *Cost Factor* of 10.
 
-All of this JSON can be created using the script [generateUserConfig.sh](./generateUserConfig.sh).
+**All of this JSON can be created using the script [generateUserConfig.sh](./generateUserConfig.sh)**.
 
 Whenever the `users.json` file is updated, reload Caddy to apply the changes.
+*Note: Sometimes for whatever reason this doesn't seem to work. In these cases, just restart the container with `docker compose restart`.
 
 ## Resources
 

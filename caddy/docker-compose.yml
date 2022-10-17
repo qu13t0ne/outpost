@@ -11,6 +11,8 @@ services:
       - "443:443"
     environment:
       - MY_DOMAIN
+      - EMAIL_FOR_ACME
+      - CF_API_TOKEN
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./data:/data
