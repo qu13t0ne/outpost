@@ -5,3 +5,5 @@ budibase/data
 .gitignore
 budibase/.env
 postgres/.env
+.env
+*/conf/

@@ -4,12 +4,14 @@
 # ===== GLOBAL OPTIONS BLOCK ==============================
 {
 	# ----- General Options -------------------------------
-	debug
+	# debug
 
 	# ----- TLS Settings ----------------------------------
-	email {env.EMAIL_FOR_ACME}
-	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
-	local_certs # issue internal certs (for local / dev environments)
+	email {$EMAIL_FOR_ACME}
+	# Staging URL for Let's Encrypt is below. Uncomment for testing.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# local_certs # issue internal certs (for local / dev environments)
+	acme_dns cloudflare {$CF_API_TOKEN}
 
 	# ----- Caddy Security Settings -----------------------
 
@@ -25,17 +27,13 @@
 		authentication portal myportal {
 			crypto default token lifetime 3600
 			crypto key sign-verify {env.JWT_SHARED_KEY}
-			# cookie domain {$MY_DOMAIN}
+			cookie domain {$MY_DOMAIN}
 			enable identity store localdb
 			ui {
 				links {
-					"My Website" https://test.{$MY_DOMAIN}/ icon "las la-star"
-					"Guests" https://test.{$MY_DOMAIN}/guests icon "las la-star"
-					"Users" https://test.{$MY_DOMAIN}/users icon "las la-star"
-					"Admins" https://test.{$MY_DOMAIN}/admins icon "las la-star"
+					"Labranet Home" https://labranet.com icon "las la-home"
 					"My Identity" "/whoami" icon "las la-user"
 				}
-				# password_recovery_enabled yes
 			}
 			transform user {
 				match origin local
@@ -44,8 +42,8 @@
 			}
 		}
 
-		authorization policy admins_policy {
-			set auth url https://auth.{$MY_DOMAIN}/
+		authorization policy main_policy {
+			set auth url https://auth.{$MY_DOMAIN}
 			allow roles authp/admin authp/user
 			crypto key verify {env.JWT_SHARED_KEY}
 			acl rule {
@@ -63,57 +61,49 @@
 }
 
 # ===== SNIPPETS ==========================================
-(redirect) {
-	@http {
-		protocol http
-	}
-	redir @http https://{host}{uri}
-}
+# (redirect) {
+# 	@http {
+# 		protocol http
+# 	}
+# 	redir @http https://{host}{uri}
+# }
 
 # ===== SITE BLOCKS =======================================
 
 # ----- Initial Caddy Testing -----------------------------
-# test-whoami.{$MY_DOMAIN} {
-# 	reverse_proxy whoami:80
-# }
+#test1.{$MY_DOMAIN} {
+#	respond "Hello, World!"
+#}
 
-# test-nginx.{$MY_DOMAIN} {
-# 	reverse_proxy nginx:80
-# }
+#test2.{$MY_DOMAIN} {
+#	reverse_proxy whoami:80
+#}
+
+#test3.{$MY_DOMAIN} {
+#	reverse_proxy nginx:80
+#}
 
 # ----- Caddy-Security Auth & Portal ----------------------
 auth.{$MY_DOMAIN} {
-	authenticate with myportal
+	route {
+		authenticate with myportal
+	}
 }
 
-#TODO WIP
-# test.{$MY_DOMAIN} {
-# 	# route /guests* {
-# 	# 	authorize with guests_policy
-# 	# 	respond * "test - guests only" 200
-# 	# }
-
-# 	# route /users* {
-# 	# 	authorize with users_policy
-# 	# 	respond * "test - users" 200
-# 	# }
-
-# 	# route /admins* {
-# 	# 	authorize with admins_policy
-# 	# 	respond * "test - admins" 200
-# 	# }
-
-# 	route {
-# 		respond "test is running"
-# 	}
-# }
+# ----- STARTPAGE -----------------------------------------
+{$MY_DOMAIN}, www.{$MY_DOMAIN} {
+	route {
+		authorize with main_policy
+		reverse_proxy flame:5005
+	}
+}
 
 # ----- BUDIBASE ------------------------------------------
-budibase.{$MY_DOMAIN} {
-	reverse_proxy bbproxy:10000
-}
+#budibase.{$MY_DOMAIN} {
+#	reverse_proxy bbproxy:10000
+#}
 
 # ----- POSTGRESQL & PGADMIN ------------------------------
-pgadmin.{$MY_DOMAIN} {
-	reverse_proxy pgadmin:80
-}
+#pgadmin.{$MY_DOMAIN} {
+#	reverse_proxy pgadmin:80
+#}
