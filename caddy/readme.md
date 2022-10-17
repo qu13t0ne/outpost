@@ -19,27 +19,17 @@ docker network create proxy_net
 
 ### Configure .env file
 
-Create a `.env` file using the template below.
+Create a `.env` file from the included template [.env.template](./.env.template).
+Edit the contents as appropriate and indicated in the file.
 ```
-MY_DOMAIN=localhost
-DOCKER_MY_NETWORK=proxy_net
-CADDY_VERSION=2
-JWT_SHARED_TOKEN=123456789
+cp .env.template .env
 ```
-#TODO UPDATE THIS
-
-Make the following changes to the template:
-- Add relevant domain name as `MY_DOMAIN`
-- Update `CADDY_VERSION` as appropriate
-- Create a `JWT_SHARED_TOKEN` using a random alphanumeric string generator such as [this](https://www.grc.com/passwords.htm).
-
 
 ### Basic Functionality Test
 
-Stand up the Caddy container as well as two test containers, `whoami` and `nginx`. Ensure the `Initial Caddy Testing` section in the `Caddyfile` is uncommented before proceeding.
+Stand up the Caddy container as well as the `nginx` test container. Ensure the `Initial Caddy Testing` section in the `Caddyfile` is uncommented before proceeding.
 ```
 docker compose up -d
-docker compose -f whoami-compose.yml up -d
 docker compose -f nginx-compose.yml up -d
 ```
 
@@ -48,9 +38,8 @@ Monitor Caddy logs for successful generation of TLS certs. (Not applicable if do
 docker logs caddy
 ```
 
-Once the test is successful, disable test containers. 
+Once the test is successful, disable test container. 
 ```
-docker compose -f whoami-compose.yml down
 docker compose -f nginx-compose.yml down
 ```
 
@@ -120,9 +109,10 @@ Where:
 - `<Enter Username>` and `<Enter Email>` = Enter user info
 - `<Enter Password Hash>` = Generate a bcrypt hash for the user password at https://bcrypt.online or through any other preferred method. Use *Cost Factor* of 10.
 
-All of this JSON can be created using the script [generateUserConfig.sh](./generateUserConfig.sh).
+**All of this JSON can be created using the script [generateUserConfig.sh](./generateUserConfig.sh)**.
 
 Whenever the `users.json` file is updated, reload Caddy to apply the changes.
+*Note: Sometimes for whatever reason this doesn't seem to work. In these cases, just restart the container with `docker compose restart`.
 
 ## Resources
 

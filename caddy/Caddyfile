@@ -76,10 +76,6 @@
 #}
 
 #test2.{$MY_DOMAIN} {
-#	reverse_proxy whoami:80
-#}
-
-#test3.{$MY_DOMAIN} {
 #	reverse_proxy nginx:80
 #}
 
