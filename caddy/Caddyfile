@@ -25,7 +25,11 @@
 		}
 
 		authentication portal myportal {
-			crypto default token lifetime 3600
+			# Pick one of the below 'crypto default token lifetime' options
+			# crypto default token lifetime 3600 # Token lifetime 1 hour
+			# crypto default token lifetime 86400 # Token lifetime 1 day			
+			crypto default token lifetime 604800 # Token lifetime 7 days
+
 			crypto key sign-verify {env.JWT_SHARED_KEY}
 			cookie domain {$MY_DOMAIN}
 			enable identity store localdb
@@ -68,12 +72,23 @@
 # 	redir @http https://{host}{uri}
 # }
 
+(local_only) {
+	@local_subnets {
+		not remote_ip private_ranges
+	}
+	respond @local_subnets "Unauthorized" 403
+}
+
+(handle_errors) {
+	rewrite * /{err.status_code}.html
+}
+
 # ===== SITE BLOCKS =======================================
 
 # ----- Initial Caddy Testing -----------------------------
-#test1.{$MY_DOMAIN} {
-#	respond "Hello, World!"
-#}
+# test1.{$MY_DOMAIN} {
+	# respond "Hello, World!"
+# }
 
 #test2.{$MY_DOMAIN} {
 #	reverse_proxy nginx:80

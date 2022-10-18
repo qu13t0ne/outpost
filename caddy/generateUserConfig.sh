@@ -19,8 +19,20 @@
 
 # ===== FUNCTIONS =====================
 
+confirmPackageInstalled() { if [[ $(dpkg -l | grep -c $1) -gt 0 ]]; then return 0; else return 1; fi }
+
+# Example Usage:
+# confirmPackageInstalled myPackage
+# status=$?
+# if [[ $status -eq 0 ]]; then
+# 	do something
+# else
+# 	do something else
+# fi
+
+
 checkPackages() {
-	which $1 > /dev/null
+	confirmPackageInstalled $1
 	status=$?
 	if [ $status -ne 0 ];then
 		printf "Error: Package \'$1\' is required and not installed. Please install it and rerun the script.\n"
@@ -44,7 +56,7 @@ promptUserConfirmation() {
 # ===== SCRIPT ========================
 
 # Check for required packages
-checkPackages uuidgen
+checkPackages uuid-runtime
 
 # Capture Info
 read -p "Enter USERNAME (no spaces): " username
