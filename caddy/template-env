@@ -1,9 +1,7 @@
-# .env FILE
-
-DOCKER_MY_NETWORK=proxy_net
+# .env file
 
 # ROUTING & TLS CONFIG
-MY_DOMAIN=localhost
+DOMAIN1=localhost
 EMAIL_FOR_ACME=email@domain.tld
 ## Add Cloudflare API token below. Scope = 'All zones - Zone:Read, DNS:Edit'
 CF_API_TOKEN=changeme!
@@ -11,4 +9,3 @@ CF_API_TOKEN=changeme!
 # CADDY SECURITY CONFIG
 ## Create a JWT_SHARED_TOKEN using a random alphanumeric string generator such as https://www.grc.com/passwords.htm
 JWT_SHARED_TOKEN=qwertyuiopasdfghjklzxcvbnmCHANGEME
-

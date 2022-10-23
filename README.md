@@ -38,6 +38,7 @@ Build yourself an outpost.
 
 - **[Caddy v2 Reverse Proxy](./caddy/readme.md)**
    - Including Caddy-Security for user authentication & MFA
+   - *Note:* Be sure to read the [Important Reverse Proxy Setup Information](./caddy/readme.md#important-reverse-proxy-setup-information) in the [Caddy readme](./caddy/readme.md) file.
 
 <!-- ### Databases -->
 
@@ -46,6 +47,7 @@ Build yourself an outpost.
 ### Apps & Services
 
 - **[Flame Startpage](./flame/readme.md)** - Easy startpage and bookmarks page
+- **[CyberChef](./cyberchef/readme.md)** - Cyber Swiss Army Knife web app
 <!-- - **[Budibase](./budibase/readme.md)** - low-code platform -->
 
 ## Metadata
