@@ -129,10 +129,10 @@ auth.{$DOMAIN1} {
 # #	reverse_proxy pgadmin:80
 # #}
 # 
-# ----- CYBERCHEF -----------------------------------------
-# cyberchef.{$DOMAIN1} {
-	# route {
-		# authorize with main_policy
-		# reverse_proxy localhost:8000 # cyberchef container
-	# }
-# }
+----- CYBERCHEF -----------------------------------------
+cyberchef.{$DOMAIN1} {
+	route {
+		authorize with main_policy
+		reverse_proxy localhost:8000 # cyberchef container
+	}
+}
