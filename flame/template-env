@@ -1,6 +1,6 @@
 # .env - Environment Variables
 
-DOCKER_MY_NETWORK=proxy_net
+PORT=5005
 CONTAINER_NAME=homepage
 CONFIG_PATH="./conf/"
 FLAME_PASSWORD=changeme

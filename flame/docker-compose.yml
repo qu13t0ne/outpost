@@ -6,16 +6,11 @@ services:
     container_name: $CONTAINER_NAME
     image: pawelmalak/flame
     restart: unless-stopped # "no" always on-failure unless-stopped
-    # ports:
-    #   - 5005:5005
+    ports:
+    - 127.0.0.1:$PORT:5005
     volumes:
       - $CONFIG_PATH/:/app/data
     environment:
       - PASSWORD=$FLAME_PASSWORD
     security_opt:
       - no-new-privileges:true
-
-networks:
-  default:
-    name: $DOCKER_MY_NETWORK
-    external: true
