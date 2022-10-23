@@ -4,9 +4,5 @@ services:
   nginx:
     image: nginx:latest
     container_name: nginx
-    hostname: nginx
-
-networks:
-  default:
-    name: $DOCKER_MY_NETWORK
-    external: true
+    ports:
+      - "127.0.0.1:8080:80"

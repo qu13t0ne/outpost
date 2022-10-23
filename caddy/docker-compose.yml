@@ -4,21 +4,16 @@ services:
     # image: caddy:2
     build: .
     container_name: caddy
-    hostname: caddy
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     environment:
-      - MY_DOMAIN
+      - DOMAIN1
       - EMAIL_FOR_ACME
       - CF_API_TOKEN
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./data:/data
       - ./config:/config
-
-networks:
-  default:
-    name: $DOCKER_MY_NETWORK
-    external: true
+    network_mode: "host"
