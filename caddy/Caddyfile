@@ -111,7 +111,7 @@ auth.{$DOMAIN1} {
 	}
 }
 
-# # ----- STARTPAGE -----------------------------------------
+# ----- STARTPAGE -----------------------------------------
 {$DOMAIN1}, www.{$DOMAIN1} {
 	route {
 		authorize with main_policy
@@ -119,17 +119,20 @@ auth.{$DOMAIN1} {
 	}
 }
 
-# # ----- BUDIBASE ------------------------------------------
-# #budibase.{$DOMAIN1} {
-# #	reverse_proxy bbproxy:10000
-# #}
-# 
+# ----- BUDIBASE ------------------------------------------
+budibase.{$DOMAIN1} {
+	route {
+		authorize with main_proxy
+		reverse_proxy localhost:10000
+	}
+}
+
 # # ----- POSTGRESQL & PGADMIN ------------------------------
 # #pgadmin.{$DOMAIN1} {
 # #	reverse_proxy pgadmin:80
 # #}
-# 
------ CYBERCHEF -----------------------------------------
+
+# ----- CYBERCHEF -----------------------------------------
 cyberchef.{$DOMAIN1} {
 	route {
 		authorize with main_policy
