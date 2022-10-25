@@ -11,7 +11,6 @@
 	# Staging URL for Let's Encrypt is below. Uncomment for testing.
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 	# local_certs # issue internal certs (for local / dev environments)
-	acme_dns cloudflare {$CF_API_TOKEN}
 
 	# ----- Caddy Security Settings -----------------------
 
@@ -73,6 +72,13 @@
 # 	redir @http https://{host}{uri}
 # }
 
+(tls_CFDNS) {
+	tls {
+		dns cloudflare {$CF_API_TOKEN}
+		resolvers 1.1.1.1
+	}
+}
+
 (local_only) {
 	@local_subnets {
 		not remote_ip private_ranges
@@ -106,6 +112,7 @@ test3.{$DOMAIN1} {
 
 # ----- Caddy-Security Auth & Portal ----------------------
 auth.{$DOMAIN1} {
+	import tls_CFDNS
 	route {
 		authenticate with myportal
 	}
@@ -113,6 +120,7 @@ auth.{$DOMAIN1} {
 
 # ----- STARTPAGE -----------------------------------------
 {$DOMAIN1}, www.{$DOMAIN1} {
+	import tls_CFDNS
 	route {
 		authorize with main_policy
 		reverse_proxy localhost:5005 # flame dashboard
@@ -121,21 +129,36 @@ auth.{$DOMAIN1} {
 
 # ----- BUDIBASE ------------------------------------------
 budibase.{$DOMAIN1} {
+	import tls_CFDNS
 	route {
-		authorize with main_proxy
+		authorize with main_policy
 		reverse_proxy localhost:10000
 	}
 }
 
-# # ----- POSTGRESQL & PGADMIN ------------------------------
-# #pgadmin.{$DOMAIN1} {
-# #	reverse_proxy pgadmin:80
-# #}
-
 # ----- CYBERCHEF -----------------------------------------
 cyberchef.{$DOMAIN1} {
+	import tls_CFDNS
 	route {
 		authorize with main_policy
 		reverse_proxy localhost:8000 # cyberchef container
+	}
+}
+
+# ----- NEXTCLOUD -----------------------------------------
+nextcloud.{$DOMAIN1} {
+	import tls_CFDNS
+	route {
+		authorize with main_policy
+		respond "nextcloud"
+	}
+}
+
+# ----- POSTGRESQL & PGADMIN ------------------------------
+pgadmin.{$DOMAIN1} {
+	import tls_CFDNS
+	route {
+		authorize with main_policy
+		respond "pgadmin"
 	}
 }
