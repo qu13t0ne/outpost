@@ -1,4 +1,5 @@
 # Budibase (Low Code Platform)
+
 **About:** Low code platform for creating internal tools, workflows, and admin panels in minutes. \
 **Default Subdomain:** `budibase.domain.tld`
 
@@ -9,7 +10,7 @@
 
 ## Backup
 
-- TBD
+- #TODO
 
 ## Resources
 

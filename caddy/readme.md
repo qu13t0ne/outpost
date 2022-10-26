@@ -1,6 +1,7 @@
 # Caddy (Reverse Proxy)
+
 **About:** "Caddy 2 is a powerful, enterprise-ready, open source web server with automatic HTTPS written in Go" \
-**Ref:** https://caddyserver.com/docs/
+**Default Subdomain:** N/A
 
 ## Key Commands
 
@@ -22,7 +23,7 @@ This setup uses Docker's **host** networking for caddy's proxying. This is diffe
 
 However, this means that all Docker containers must expose a port on the Dockerhost instead of using the Docker bridge network or a custom network. Ports are restricted to the `localhost` using a format like the below, where `$EXPOSED_PORT` is the port accessible on the host that Caddy can use, and `$SERVICE_PORT` is whatever port the service is using inside the container.
 
-```example
+```
 ports:
 	- "127.0.0.1:$EXPOSED_PORT:$SERVICE_PORT"
 ```
@@ -35,12 +36,12 @@ For examples, reference [nginx-compose.yml](./nginx-compose.yml) and the `test2.
 - This setup assumes using Cloudflare as nameserver & DNS management for your domain. Thus, the Cloudflare DNS module is included in the Dockerfile build for this Caddy instance and the Caddyfile is configured to use a Cloudflare API key.
 - The Acme DNS challenge is enabled for TSL certificate generation. TLS certificates can therefore be generated for sites and services that are not internet-routable (i.e. internal-only sites). This is not possible if using the HTTP challenge.
 
-### Create new docker network
+<!-- ### Create new docker network
 
 ```
 docker network create proxy_net
 ```
-
+ -->
 ### Set up Cloudflare DNS ACME Cert Generation
 
 - Set up DNS records in Cloudflare for your domain, as shown below. This creates a primary `A` record for the domain and a wildcard `CNAME` record for first-level subdomains. Start by leaving proxy disabled, as it simplifies any initial troubleshooting. Once certs are generating and sites are routing successfully, proxy can be enabled.
@@ -55,21 +56,18 @@ docker network create proxy_net
 
 ### Configure .env file
 
-Create a `.env` file from the included template [.env.template](./.env.template).
-Edit the contents as appropriate and indicated in the file.
-```
-cp .env.template .env
-```
-
-Make the following changes to the template:
-- Add relevant domain name as `MY_DOMAIN`
-- Add email for cert generation & renewal notifications
-- Paste the Cloudflare API token generated in the previous step
-- Create a `JWT_SHARED_TOKEN` using a random alphanumeric string generator such as [this](https://www.grc.com/passwords.htm).
+- Create a `.env` file from the included [template_env](./template_env).
+- Edit the contents as appropriate and indicated in the file.
+- Make the following changes to the template:
+  - Add relevant domain name as `MY_DOMAIN`
+  - Add email for cert generation & renewal notifications
+  - Paste the Cloudflare API token generated in the previous step
+  - Create a `JWT_SHARED_TOKEN` using a random alphanumeric string generator such as [this](https://www.grc.com/passwords.htm).
 
 ### Basic Functionality Tests
 
 #### Edit Caddyfile
+
 For initial testing, make sure the Caddyfile is as follows:
 - Uncomment `debug`
 - Uncomment Let's Encrypt staging URL
@@ -193,6 +191,10 @@ Where:
 
 Whenever the `users.json` file is updated, reload Caddy to apply the changes.
 *Note: Sometimes for whatever reason this doesn't seem to work. In these cases, just restart the container with `docker compose restart`.*
+
+## Backup
+
+- #TODO
 
 ## Resources
 

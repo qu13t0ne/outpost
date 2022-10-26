@@ -1,4 +1,7 @@
-## PostgreSQL and pgAdmin (Relational Database and Administration Portal)
+## PostgreSQL and pgAdmin (Relational Database + Administration Portal)
+
+**About:** "The World's Most Advanced Open Source Relational Database" +  "The most popular and feature rich Open Source administration and development platform for PostgreSQL" \
+**Default Subdomain:** `pgadmin.domain.tld`
 
 ## Setup
 
@@ -36,6 +39,11 @@ Log into the pgAdmin interface using the credentials from the `.env` file. Then 
 	- Maintenance Database: $POSTGRES_DB (see .env)
 	- Username: $POSTGRES_USER (see .env)
 	- Password: $POSTGRES_PW (see .env)
+
+
+## Backup
+
+- #TODO
 
 ## Resources
 - https://github.com/docker/awesome-compose/tree/master/postgresql-pgadmin
