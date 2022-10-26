@@ -10,6 +10,7 @@ services:
       - "443:443"
     environment:
       - DOMAIN1
+      - DOMAIN2
       - EMAIL_FOR_ACME
       - CF_API_TOKEN
     volumes:

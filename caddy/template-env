@@ -2,6 +2,7 @@
 
 # ROUTING & TLS CONFIG
 DOMAIN1=localhost
+DOMAIN2=localhost
 EMAIL_FOR_ACME=email@domain.tld
 ## Add Cloudflare API token below. Scope = 'All zones - Zone:Read, DNS:Edit'
 CF_API_TOKEN=changeme!

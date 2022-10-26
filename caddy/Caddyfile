@@ -162,3 +162,35 @@ pgadmin.{$DOMAIN1} {
 		respond "pgadmin"
 	}
 }
+
+# ===== LAN-ONLY SERVICES ON SECONDARY DOMAIN =============
+{$DOMAIN2} {
+	import tls_CFDNS
+	import local_only
+	# respond "Hello World"
+	redir https://{$DOMAIN1}
+}
+
+*.{$DOMAIN2} {
+	import tls_CFDNS
+	import local_only
+
+	@proxmox host proxmox.{$DOMAIN2}
+	handle @proxmox {
+		reverse_proxy https://192.168.1.23:8006 {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+	}
+
+	@omv host omv.{$DOMAIN2}
+	handle @omv {
+		reverse_proxy 192.168.1.103
+	}
+
+	# Fallback for otherwise unhandled domains
+	handle {
+		respond "404" 404
+	}
+}
