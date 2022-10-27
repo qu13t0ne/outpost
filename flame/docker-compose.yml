@@ -12,5 +12,3 @@ services:
       - $CONFIG_PATH/:/app/data
     environment:
       - PASSWORD=$FLAME_PASSWORD
-    security_opt:
-      - no-new-privileges:true

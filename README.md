@@ -26,29 +26,58 @@ Build yourself an outpost.
 
 ## Installation and Setup
 
-- Prep host system
-   - Linux preferred for a server. I tend to run Debian-based distros, but any Linux distro should work fine.
-   - Since stuff is Docker-based, can also be run on workstation as `localhost`, including MacOS (partially tested) and Windows (if you have to)
-- Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/)
-- Follow startup instructions on each of the component readme pages linked below.
+### Summary
+
+1. Prep your host system.
+2. Follow startup instructions on each of the component readme pages linked below.
+
+### Prep Host System
+
+Linux is preferred for a server. I tend to run Debian-based distros, but any Linux distro should work fine. Since stuff is mostly Docker-based, Outpost can also be run on a local workstation as `localhost`, including MacOS (partially tested) and theoretically Windows (if you *must*, not tested, some mods probably necessary). All setup and commands in this repo assume a Linux (Debian) host, so YMMV.
+
+#### Install Docker
+
+Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) according to the latest Docker instructions.
+
+#### Add Docker Daemon Settings
+
+Add some default settings to the Docker daemon for log rotation and container privilege restriction.
+
+- Review contents of the [daemon.json](./daemon.json) file in this repo.
+- Check if a default `daemon.json` file has already been created by Docker.
+```shell
+ls /etc/docker/daemon.json
+```
+- **IF** a default file does not exist (meaning the above command returns something like `ls: cannot access '/etc/docker/daemon.json': No such file or directory`), **THEN**:
+	- Copy the `daemon.json` file from this repo to the default docker location
+	```shell
+	sudo cp ./daemon.json /etc/docker/daemon.json
+	```
+- **ELSE** (i.e., a file already exists at `/etc/docker/daemon.json`):
+	- Modify the existing file to add the settings from this repo's version.
+
+Finally, restart the Docker daemon.
+```shell
+sudo systemctl restart docker.service
+```
 
 ## Components
 
 ### Core Infrastructure & Security
 
-- **[Caddy v2 Reverse Proxy](./caddy/readme.md)**
+- **[Caddy v2 Reverse Proxy](./caddy/)**
    - Including Caddy-Security for user authentication & MFA
    - *Note:* Be sure to read the [Important Reverse Proxy Setup Information](./caddy/readme.md#important-reverse-proxy-setup-information) in the [Caddy readme](./caddy/readme.md) file.
 
 <!-- ### Databases -->
 
-<!-- - **[PostgreSQL and pgAdmin](./postgres/readme.md)** -->
+<!-- - **[PostgreSQL and pgAdmin](./postgres/)** -->
 
 ### Apps & Services
 
-- **[Flame Startpage](./flame/readme.md)** - Easy startpage and bookmarks page
-- **[CyberChef](./cyberchef/readme.md)** - Cyber Swiss Army Knife web app
-<!-- - **[Budibase](./budibase/readme.md)** - low-code platform -->
+- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
+- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
+<!-- - **[Budibase](./budibase/)** - low-code platform -->
 
 ## Metadata
 

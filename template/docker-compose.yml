@@ -2,7 +2,7 @@
 version: "3"
 
 services:
-  flame:
+  <servicename>:
     container_name: $CONTAINER_NAME
     image: <TBD>
     restart: unless-stopped # "no" always on-failure unless-stopped
@@ -10,5 +10,3 @@ services:
     - 127.0.0.1:$PORT:<TBD>
     volumes:
       - $CONFIG_PATH/:<TBD>
-    security_opt:
-      - no-new-privileges:true

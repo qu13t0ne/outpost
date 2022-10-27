@@ -6,7 +6,5 @@ services:
     container_name: cyberchef
     image: mpepping/cyberchef
     restart: unless-stopped # "no" always on-failure unless-stopped
-    security_opt:
-      - no-new-privileges:true
     ports:
       - 127.0.0.1:8000:8000
