@@ -1,0 +1,13 @@
+# .env - Environment Variables
+
+PORT=11000
+
+## DO NOT CHANGE THIS ONCE NEXTCLOUD HAS BEEN STARTED!!! ONLY SET BEFORE FIRST START!!!
+## Ref: https://github.com/nextcloud/all-in-one#how-to-change-the-default-location-of-nextclouds-datadir
+## MULTIPLE ADDITIONAL INSTRUCTIONS -- REFERENCE ABOVE LINK BEFORE CONTINUING !!!!!!!!!!!!!!!!
+DATADIR="./ncdata"
+
+## OPTIONAL: Allow Nextcloud to access directories on the host
+## Ref: https://github.com/nextcloud/all-in-one#how-to-allow-the-nextcloud-container-to-access-directories-on-the-host
+## Note: This path is NOT covered by built-in backup solution
+MOUNTPATH="./mnt"

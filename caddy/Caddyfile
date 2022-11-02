@@ -146,13 +146,25 @@ cyberchef.{$DOMAIN1} {
 }
 
 # ----- NEXTCLOUD -----------------------------------------
-nextcloud.{$DOMAIN1} {
-	import tls_CFDNS
-	route {
-		authorize with main_policy
-		respond "nextcloud"
-	}
-}
+# nextcloud.{$DOMAIN1} {
+	# import tls_CFDNS
+	# route {
+		# authorize with main_policy
+		# reverse_proxy localhost:11000
+	# }
+# }
+# 
+# ncadmin.{$DOMAIN1} {
+	# import tls_CFDNS
+	# route {
+		# authorize with main_policy
+		# reverse_proxy https://localhost:8080 {
+			# transport http {
+				# tls_insecure_skip_verify
+			# }
+		# }
+	# }
+# }
 
 # ----- POSTGRESQL & PGADMIN ------------------------------
 pgadmin.{$DOMAIN1} {
