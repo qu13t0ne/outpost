@@ -15,33 +15,33 @@ Any other `caddy` commands can be run in the container by replacing `reload` abo
 
 ## Setup
 
-### Important Reverse Proxy Setup Information
-This setup uses Docker's **host** networking for caddy's proxying. This is different than many similar setups and is done for two reasons.
-
-1. The Nextcloud All-In-One Docker setup requires it.
-2. Using Docker's host networking option makes it easier to proxy external services (i.e., services on other servers) in addition to just Dockerized services.
-
-However, this means that all Docker containers must expose a port on the Dockerhost instead of using the Docker bridge network or a custom network. Ports are restricted to the `localhost` using a format like the below, where `$EXPOSED_PORT` is the port accessible on the host that Caddy can use, and `$SERVICE_PORT` is whatever port the service is using inside the container.
-
-```
-ports:
-	- "127.0.0.1:$EXPOSED_PORT:$SERVICE_PORT"
-```
-
-Reverse proxies in Caddy are configured using config such as `reverse_proxy localhost:$EXPOSED_PORT`.
-
-For examples, reference [nginx-compose.yml](./nginx-compose.yml) and the `test2.{$DOMAIN1}` block in the [Caddyfile](./Caddyfile).
+<!-- ### Important Reverse Proxy Setup Information -->
+<!-- This setup uses Docker's **host** networking for caddy's proxying. This is different than many similar setups and is done for two reasons. -->
+<!--  -->
+<!-- 1. The Nextcloud All-In-One Docker setup requires it. -->
+<!-- 2. Using Docker's host networking option makes it easier to proxy external services (i.e., services on other servers) in addition to just Dockerized services. -->
+<!--  -->
+<!-- However, this means that all Docker containers must expose a port on the Dockerhost instead of using the Docker bridge network or a custom network. Ports are restricted to the `localhost` using a format like the below, where `$EXPOSED_PORT` is the port accessible on the host that Caddy can use, and `$SERVICE_PORT` is whatever port the service is using inside the container. -->
+<!--  -->
+<!-- ``` -->
+<!-- ports: -->
+	<!-- - "127.0.0.1:$EXPOSED_PORT:$SERVICE_PORT" -->
+<!-- ``` -->
+<!--  -->
+<!-- Reverse proxies in Caddy are configured using config such as `reverse_proxy localhost:$EXPOSED_PORT`. -->
+<!--  -->
+<!-- For examples, reference [nginx-compose.yml](./nginx-compose.yml) and the `test2.{$DOMAIN1}` block in the [Caddyfile](./Caddyfile). -->
 
 ### DNS Notes
 - This setup assumes using Cloudflare as nameserver & DNS management for your domain. Thus, the Cloudflare DNS module is included in the Dockerfile build for this Caddy instance and the Caddyfile is configured to use a Cloudflare API key.
 - The Acme DNS challenge is enabled for TSL certificate generation. TLS certificates can therefore be generated for sites and services that are not internet-routable (i.e. internal-only sites). This is not possible if using the HTTP challenge.
 
-<!-- ### Create new docker network
+### Create new docker network 
 
-```
-docker network create proxy_net
-```
- -->
+``` 
+docker network create proxy_net 
+``` 
+
 ### Set up Cloudflare DNS ACME Cert Generation
 
 - Set up DNS records in Cloudflare for your domain, as shown below. This creates a primary `A` record for the domain and a wildcard `CNAME` record for first-level subdomains. Start by leaving proxy disabled, as it simplifies any initial troubleshooting. Once certs are generating and sites are routing successfully, proxy can be enabled.

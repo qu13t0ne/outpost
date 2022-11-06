@@ -1,5 +1,9 @@
 # .env file
 
+# BASIC CONFIG
+NETWORK=proxy_net
+APPDATA=/srv/caddy
+
 # ROUTING & TLS CONFIG
 DOMAIN1=localhost
 DOMAIN2=localhost
