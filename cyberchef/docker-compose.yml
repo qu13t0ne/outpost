@@ -6,5 +6,10 @@ services:
     container_name: cyberchef
     image: mpepping/cyberchef
     restart: unless-stopped # "no" always on-failure unless-stopped
-    ports:
-      - 127.0.0.1:8000:8000
+    # ports:
+      # - 8000:8000
+
+networks:
+  default:
+    name: proxy_net
+    external: true

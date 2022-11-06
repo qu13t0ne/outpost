@@ -137,13 +137,13 @@ auth.{$DOMAIN1} {
 # }
 
 # ----- CYBERCHEF -----------------------------------------
-# cyberchef.{$DOMAIN1} {
-	# import tls_CFDNS
-	# route {
-		# authorize with main_policy
-		# reverse_proxy localhost:8000 # cyberchef container
-	# }
-# }
+cyberchef.{$DOMAIN1} {
+	import tls_CFDNS
+	route {
+		authorize with main_policy
+		reverse_proxy cyberchef:8000
+	}
+}
 
 # ----- NEXTCLOUD -----------------------------------------
 # nextcloud.{$DOMAIN1} {
