@@ -35,6 +35,13 @@ Build yourself an outpost.
 
 Linux is preferred for a server. I tend to run Debian-based distros, but any Linux distro should work fine. Since stuff is mostly Docker-based, Outpost can also be run on a local workstation as `localhost`, including MacOS (partially tested) and theoretically Windows (if you *must*, not tested, some mods probably necessary). All setup and commands in this repo assume a Linux (Debian) host, so YMMV.
 
+#### Specific Setup Notes
+
+I like to run all Docker & services stuff out of a separate partition than root. If virtualized, I may even set this up as a separate virtual hard drive. Specifically, I'm using `/srv` for this. This has a few requirements/implications:
+- Through partitioning and/or mounting a separate drive, separate `/srv` from `/` (root)
+- Docker is configured (see *Docker Daemon Settings* below) to use `/srv/docker` as the default location for docker-related files (containers, volumes, logs, etc.) instead of the standard `/var/lib/docker`
+- Containers and services will by default save persistent data to various folders in `/srv`, as indicated in the `template-env` files
+
 #### Install Docker
 
 Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) according to the latest Docker instructions.
