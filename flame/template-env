@@ -1,6 +1,6 @@
 # .env - Environment Variables
 
-PORT=5005
+NETWORK=proxy_net
 CONTAINER_NAME=homepage
-CONFIG_PATH="./conf/"
+APPDATA=/srv/flame
 FLAME_PASSWORD=changeme

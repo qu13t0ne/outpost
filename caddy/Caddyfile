@@ -94,21 +94,21 @@
 
 # ----- Initial Caddy Testing -----------------------------
 
-# simple test
-test1.{$DOMAIN1} {
-	respond "Hello, World!"
-}
-
-# testing to nginx
-test2.{$DOMAIN1} {
-	reverse_proxy localhost:8080 # nginx
-}
-
-# testing local_only restriction
-test3.{$DOMAIN1} {
-	import local_only
-	reverse_proxy localhost:8080 # nginx
-}
+# # simple test
+# test1.{$DOMAIN1} {
+	# respond "Hello, World!"
+# }
+# 
+# # testing to nginx
+# test2.{$DOMAIN1} {
+	# reverse_proxy localhost:8080 # nginx
+# }
+# 
+# # testing local_only restriction
+# test3.{$DOMAIN1} {
+	# import local_only
+	# reverse_proxy localhost:8080 # nginx
+# }
 
 # ----- Caddy-Security Auth & Portal ----------------------
 auth.{$DOMAIN1} {
@@ -123,27 +123,27 @@ auth.{$DOMAIN1} {
 	import tls_CFDNS
 	route {
 		authorize with main_policy
-		reverse_proxy localhost:5005 # flame dashboard
+		reverse_proxy homepage:5005 # flame dashboard
 	}
 }
 
 # ----- BUDIBASE ------------------------------------------
-budibase.{$DOMAIN1} {
-	import tls_CFDNS
-	route {
-		authorize with main_policy
-		reverse_proxy localhost:10000
-	}
-}
+# budibase.{$DOMAIN1} {
+	# import tls_CFDNS
+	# route {
+		# authorize with main_policy
+		# reverse_proxy localhost:10000
+	# }
+# }
 
 # ----- CYBERCHEF -----------------------------------------
-cyberchef.{$DOMAIN1} {
-	import tls_CFDNS
-	route {
-		authorize with main_policy
-		reverse_proxy localhost:8000 # cyberchef container
-	}
-}
+# cyberchef.{$DOMAIN1} {
+	# import tls_CFDNS
+	# route {
+		# authorize with main_policy
+		# reverse_proxy localhost:8000 # cyberchef container
+	# }
+# }
 
 # ----- NEXTCLOUD -----------------------------------------
 # nextcloud.{$DOMAIN1} {
@@ -167,13 +167,13 @@ cyberchef.{$DOMAIN1} {
 # }
 
 # ----- POSTGRESQL & PGADMIN ------------------------------
-pgadmin.{$DOMAIN1} {
-	import tls_CFDNS
-	route {
-		authorize with main_policy
-		respond "pgadmin"
-	}
-}
+# pgadmin.{$DOMAIN1} {
+	# import tls_CFDNS
+	# route {
+		# authorize with main_policy
+		# respond "pgadmin"
+	# }
+# }
 
 # ===== LAN-ONLY SERVICES ON SECONDARY DOMAIN =============
 {$DOMAIN2} {
