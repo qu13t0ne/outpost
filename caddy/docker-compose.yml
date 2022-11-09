@@ -4,7 +4,7 @@ services:
     # image: caddy:2
     build: .
     container_name: caddy
-    restart: unless-stopped
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -17,7 +17,6 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ${APPDATA}/data:/data
       - ${APPDATA}/config:/config
-#     network_mode: "host"
 
 networks:
   default:

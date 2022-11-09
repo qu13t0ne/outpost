@@ -5,7 +5,7 @@ services:
   flame:
     container_name: $CONTAINER_NAME
     image: pawelmalak/flame
-    restart: unless-stopped # "no" always on-failure unless-stopped
+    restart: always
     # ports:
     # - 5005:5005
     volumes:

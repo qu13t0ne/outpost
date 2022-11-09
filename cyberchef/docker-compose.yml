@@ -5,7 +5,7 @@ services:
   cyberchef:
     container_name: cyberchef
     image: mpepping/cyberchef
-    restart: unless-stopped # "no" always on-failure unless-stopped
+    restart: always
     # ports:
       # - 8000:8000
 
