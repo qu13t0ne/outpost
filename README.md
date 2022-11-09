@@ -85,7 +85,7 @@ sudo systemctl restart docker.service
 - **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
 - **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
 - **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
-<!-- - **[Budibase](./budibase/)** - low-code platform -->
+- **[Budibase](./budibase/)** - low-code platform 
 
 ## Metadata
 

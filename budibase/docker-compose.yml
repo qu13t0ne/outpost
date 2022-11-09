@@ -29,8 +29,8 @@ services:
     depends_on:
       - worker-service
       - redis-service
-#    volumes:
-#      - /some/path/to/plugins:/plugins
+    volumes:
+      - $PLUGINS_DIR:/plugins
 
   worker-service:
     restart: unless-stopped
@@ -75,8 +75,11 @@ services:
 
   proxy-service:
     restart: unless-stopped
-    ports:
-    - "127.0.0.1:${MAIN_PORT}:10000"
+    # ports:
+    # - "127.0.0.1:${MAIN_PORT}:10000"
+    networks:
+      - default
+      - proxy
     container_name: bbproxy
     image: budibase/proxy
     environment:
@@ -124,8 +127,9 @@ services:
       - WATCHTOWER_CLEANUP=true
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
-# 
-# networks:
-  # default:
-    # name: $DOCKER_MY_NETWORK
-    # external: true
+
+networks:
+  default:
+  proxy:
+    name: $NETWORK
+    external: true

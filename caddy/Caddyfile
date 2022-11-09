@@ -128,13 +128,13 @@ auth.{$DOMAIN1} {
 }
 
 # ----- BUDIBASE ------------------------------------------
-# budibase.{$DOMAIN1} {
-	# import tls_CFDNS
-	# route {
-		# authorize with main_policy
-		# reverse_proxy localhost:10000
-	# }
-# }
+budibase.{$DOMAIN1} {
+	import tls_CFDNS
+	route {
+		authorize with main_policy
+		reverse_proxy bbproxy:80
+	}
+}
 
 # ----- CYBERCHEF -----------------------------------------
 cyberchef.{$DOMAIN1} {
