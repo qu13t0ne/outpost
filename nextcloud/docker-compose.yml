@@ -1,0 +1,54 @@
+# NEXTCLOUD
+version: '3'
+
+services:
+  db:
+    container_name: ${CONTAINER_NAME}-db
+    image: mariadb:10.5
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    volumes:
+      - $DBDATA:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MARIADB_AUTO_UPGRADE=1
+      - MARIADB_DISABLE_UPGRADE_BACKUP=1
+    env_file:
+      - .env
+
+  redis:
+    container_name: ${CONTAINER_NAME}-redis
+    image: redis:alpine
+    restart: always
+
+  app:
+    container_name: $CONTAINER_NAME
+    # image: nextcloud:apache
+    build: .
+    restart: always
+    # ports:
+      # - 127.0.0.1:8080:80
+    networks:
+      - default
+      - proxy
+    volumes:
+      - $APPDATA:/var/www/html
+      - $USERDATA:/var/www/html/data
+      - $SHARED:/mnt/
+    environment:
+      - MYSQL_HOST=db
+      - REDIS_HOST=redis
+      - NEXTCLOUD_TRUSTED_DOMAINS=$NEXTCLOUD_FQDN
+      - TRUSTED_PROXIES=caddy
+      - OVERWRITEPROTOCOL=https
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+networks:
+  default:
+  proxy:
+    name: $NETWORK
+    external: true

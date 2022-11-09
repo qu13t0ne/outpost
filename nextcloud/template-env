@@ -1,0 +1,28 @@
+# .env - Environment Variables
+
+# GENERAL
+CONTAINER_NAME=nextcloud
+NETWORK=proxy_net
+NEXTCLOUD_FQDN=nextcloud.domain.tld
+TZ=America/New_York
+
+# DATA DIRECTORIES
+APPDATA=/srv/nextcloud/appdata
+USERDATA=/srv/nextcloud/users
+DBDATA=/srv/nextcloud/db
+SHARED=/srv/SHARED
+
+# MARIADB
+MYSQL_ROOT_PASSWORD=changeme
+MYSQL_PASSWORD=changeme
+MYSQL_DATABASE=nextcloud
+MYSQL_USER=nextcloud
+
+# EMAIL CONFIG
+MAIL_DOMAIN=domain.tld
+MAIL_FROM_ADDRESS=nextcloud
+SMTP_SECURE=ssl
+SMTP_HOST=smtp.domain.tld
+SMTP_PORT=465
+SMTP_NAME=username
+SMTP_PASSWORD=password

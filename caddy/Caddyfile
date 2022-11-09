@@ -146,25 +146,60 @@ cyberchef.{$DOMAIN1} {
 }
 
 # ----- NEXTCLOUD -----------------------------------------
-# nextcloud.{$DOMAIN1} {
-	# import tls_CFDNS
-	# route {
-		# authorize with main_policy
-		# reverse_proxy localhost:11000
-	# }
-# }
+nextcloud.{$DOMAIN1} {
+	import tls_CFDNS
+    header Strict-Transport-Security max-age=31536000;
+    redir /.well-known/carddav /remote.php/carddav 301
+    redir /.well-known/caldav /remote.php/caldav 301
+    redir /.well-known/webfinger /remote.php/webfinger 301
+    redir /.well-known/nodeinfo /remote.php/nodeinfo 301
+
+    reverse_proxy nextcloud:80
+
+    @forbidden {
+            path /.htaccess
+            path /data/*
+            path /config/*
+            path /db_structure
+            path /.xml
+            path /README
+            path /3rdparty/*
+            path /lib/*
+            path /templates/*
+            path /occ
+            path /console.php
+    }
+
+    respond @forbidden 404
+
+}
+
+# ----- COLLABORA OFFICE ----------------------------------
+
+office.${DOMAIN1} {
+    import tls_CFDNS
+    respond "collabora test"
+    # reverse_proxy nc2-collabora:9980 {
+        # # header_up Host "nextcloud.${DOMAIN1}"
+        # transport http {
+            # tls_insecure_skip_verify
+        # }
+    # }
+    # @collabora {
+        # path /loleaflet/* # Loleaflet is the client part of LibreOffice Online
+        # path /hosting/discovery # WOPI discovery URL
+        # path /hosting/capabilities # Show capabilities as json
+        # path /lool/* # Main websocket, uploads/downloads, presentations
+    # }
 # 
-# ncadmin.{$DOMAIN1} {
-	# import tls_CFDNS
-	# route {
-		# authorize with main_policy
-		# reverse_proxy https://localhost:8080 {
-			# transport http {
-				# tls_insecure_skip_verify
-			# }
-		# }
-	# }
-# }
+    # reverse_proxy @collabora nc2-collabora:9980 {
+        # header_up Host "nextcloud.${DOMAIN1}"
+        # transport http {
+            # tls_insecure_skip_verify
+        # }
+    # }
+
+}
 
 # ----- POSTGRESQL & PGADMIN ------------------------------
 # pgadmin.{$DOMAIN1} {
