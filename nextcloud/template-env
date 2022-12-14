@@ -7,9 +7,8 @@ NEXTCLOUD_FQDN=nextcloud.domain.tld
 TZ=America/New_York
 
 # DATA DIRECTORIES
-APPDATA=/srv/nextcloud/appdata
+APPDATA=/srv/nextcloud
 USERDATA=/srv/nextcloud/users
-DBDATA=/srv/nextcloud/db
 SHARED=/srv/SHARED
 
 # MARIADB
@@ -26,3 +25,12 @@ SMTP_HOST=smtp.domain.tld
 SMTP_PORT=465
 SMTP_NAME=username
 SMTP_PASSWORD=password
+
+# BACKUPS
+# Ref: https://github.com/tiredofit/docker-db-backup#scheduling-options
+## Frequency (Minutes) 1440 = 1 per day
+DB_DUMP_FREQ=1440
+## Start Time (24h)
+DB_DUMP_BEGIN="0300"
+## Clean up after X minutes (10080 = 7 days)
+DB_CLEANUP_TIME=10080
