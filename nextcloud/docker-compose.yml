@@ -8,7 +8,7 @@ services:
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     restart: always
     volumes:
-      - $DBDATA:/var/lib/mysql
+      - $APPDATA/db:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
       - MARIADB_AUTO_UPGRADE=1
@@ -22,7 +22,7 @@ services:
     restart: always
 
   app:
-    container_name: $CONTAINER_NAME
+    container_name: $CONTAINER_NAME-app
     # image: nextcloud:apache
     build: .
     restart: always
@@ -32,7 +32,7 @@ services:
       - default
       - proxy
     volumes:
-      - $APPDATA:/var/www/html
+      - $APPDATA/ncdata:/var/www/html
       - $USERDATA:/var/www/html/data
       - $SHARED:/mnt/
     environment:
@@ -46,6 +46,33 @@ services:
     depends_on:
       - db
       - redis
+
+  db-backup:
+    container_name: $CONTAINER_NAME-db-backup
+    image: tiredofit/db-backup
+    restart: always
+    networks:
+      - default
+    volumes:
+      - $APPDATA/db_backups/backups:/backup
+      - $APPDATA/db_backups/logfiles:/assets/logfiles
+      - ./db_backup/scripts_pre:/assets/scripts/pre
+      - ./db_backup/scripts_post:/assets/scripts/post
+    environment:
+      - DB_TYPE=mariadb
+      - DB_HOST=$CONTAINER_NAME-db
+      - DB_NAME=$MYSQL_DATABASE
+      - DB_USER=$MYSQL_USER
+      - DB_PASS=$MYSQL_PASSWORD
+      - CHECKSUM=SHA1
+      - CONTAINER_ENABLE_MONITORING=FALSE
+      - DB_DUMP_FREQ
+      - DB_DUMP_BEGIN
+      - DB_CLEANUP_TIME
+    env_file:
+      - .env
+    depends_on:
+      - db
 
 networks:
   default:

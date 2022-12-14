@@ -22,14 +22,25 @@ This Nextcloud installation includes the following components:
 
 ## Backup
 
+### Database
+Database backups are performed through the `docker-db-backup` container. The container performs scheduled database backups, saves them to a `APPDATA/db_backups`, generates a log file with backup times and checksums, and prunes old backups. The default is to perform nightly backups and retain them for 7 days.
+
+### Data Directories
 - Four directories need to be included in backups:
-    - `APPDATA` Application data (Default: `/srv/nextcloud/appdata`)
+    - `APPDATA/ncdata` Application data (Default: `/srv/nextcloud/ncdata`)
+    - `APPDATA/db_backups` The database backups directory (Default: `/srv/nextcloud/db_backups`)
     - `USERDATA` User account files (Default: `/srv/nextcloud/users`)
-    - `DBDATA` The database (Default: `/srv/nextcloud/db`)
     - `SHARED` Directories shared by other apps (Default: `/srv/SHARED`)
+        - *Unless backup is handled by another system*
+
+## NFS Considerations
+
+- NFS shares mounted to the host can be used for `USERDATA` and `SHARED` directories.
+- To avoid file system permission & ownership issues, `APPDATA` (including the database) should be kept on the host file system.
 
 ## Resources
 
 - https://github.com/nextcloud/docker
 - https://github.com/nextcloud/docker/tree/master/.examples
 - https://docs.nextcloud.com/server/stable/admin_manual/office/example-docker.html
+- https://github.com/tiredofit/docker-db-backup
