@@ -56,8 +56,8 @@ services:
     volumes:
       - $APPDATA/db_backups/backups:/backup
       - $APPDATA/db_backups/logfiles:/assets/logfiles
-      - ./db_backup/scripts_pre:/assets/scripts/pre
-      - ./db_backup/scripts_post:/assets/scripts/post
+      - ./backup_db/scripts_pre:/assets/scripts/pre
+      - ./backup_db/scripts_post:/assets/scripts/post
     environment:
       - DB_TYPE=mariadb
       - DB_HOST=$CONTAINER_NAME-db

@@ -15,9 +15,9 @@
 logFile="/assets/logfiles/${3}_backups.log"
 
 if [ ${1} -eq 0 ]; then
-    echo -e "$(date +"%T")\tSUCCESS(${1})\t${2} Backup Completed on ${3} for ${4} on ${5} ending ${6} for a duration of ${7} seconds. Filename: ${8} Size: ${9} bytes SHA1: ${10}" >> $logFile
+    echo -e "$(date +"%F %T")\tSUCCESS(${1})\t${2} Backup Completed on ${3} for ${4} on ${5} ending ${6} for a duration of ${7} seconds. Filename: ${8} Size: ${9} bytes SHA1: ${10}" >> $logFile
 else
-    echo -e "$(date +"%T")\tERROR(${1})\t${2} Backup Completed with errors on ${3} for ${4} on ${5} ending ${6} for a duration of ${7} seconds. Filename: ${8} Size: ${9} bytes SHA1: ${10}" >> $logFile
+    echo -e "$(date +"%F %T")\tERROR(${1})\t${2} Backup Completed with errors on ${3} for ${4} on ${5} ending ${6} for a duration of ${7} seconds. Filename: ${8} Size: ${9} bytes SHA1: ${10}" >> $logFile
 fi
 
 # Monitor the log file directory and remove old files as necessary to keep it under 500 MB

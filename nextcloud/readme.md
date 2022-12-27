@@ -35,8 +35,9 @@ Database backups are performed through the `docker-db-backup` container. The con
 
 ## NFS Considerations
 
-- NFS shares mounted to the host can be used for `USERDATA` and `SHARED` directories.
-- To avoid file system permission & ownership issues, `APPDATA` (including the database) should be kept on the host file system.
+- NFS shares mounted to the host can be used for `SHARED` directories.
+- To avoid file system permission & ownership issues, `APPDATA` (including the database) and `USERDATA` should be kept on the host file system.
+- *I bet there's a better way to deal with these issues and better scale the user data... I just don't know what it is, and this setup works fine for my use case.*
 
 ## Resources
 

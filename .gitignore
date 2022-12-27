@@ -7,5 +7,3 @@ budibase/.env
 postgres/.env
 .env
 */conf/
-backups-restic/install.sh
-backups-restic/profiles.yaml
