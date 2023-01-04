@@ -39,6 +39,34 @@ Database backups are performed through the `docker-db-backup` container. The con
 - To avoid file system permission & ownership issues, `APPDATA` (including the database) and `USERDATA` should be kept on the host file system.
 - *I bet there's a better way to deal with these issues and better scale the user data... I just don't know what it is, and this setup works fine for my use case.*
 
+## Recommended Nextcloud Apps
+
+### Security
+
+For better MFA:
+- Two-Factor TOTP Provider
+- Two-Factor WebAuthn
+- Two-Factor Admin Support
+
+For additional security benefits:
+- Auditing/Logging
+- Brute Force Settings
+- Ransomware Protection
+- Suspicious Login
+
+### Files and Storage
+- Collabora Online - Built-in CODE Server
+- External Storage Support
+- File Sharing
+- Configurable Share Links
+
+### Media
+- Photos
+- Preview Generator
+  - After installing and enabling the app, run `docker exec -u 33 -it nextcloud-app php occ preview:generate-all` to begin generating image previews. (**May take a while, depending on size of image directory!**)
+  - On the host system, schedule a cron job to run regularly and pre-generate previews. The following example runs every 10 minutes:
+    - Example: `*/10 * * * * docker exec -u 33 -it nextcloud-app php occ preview:pre-generate # nextcloud preview generator app`
+
 ## Resources
 
 - https://github.com/nextcloud/docker
