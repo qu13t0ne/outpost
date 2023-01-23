@@ -1,0 +1,27 @@
+# .env - Environment Variables
+
+# GENERAL
+CONTAINER_NAME=ghost
+NETWORK=proxy_net
+PORT=2368
+FQDN="https://domain.tld"
+ADMIN_FQDN="https://admin.domain.tld"
+MAIL_FROM="email@domain.tld"
+TZ=America/New_York
+APPDATA=./conf/
+PUID=1000
+GUID=1000
+
+# MYSQL
+MYSQL_USER=ghost
+MYSQL_PASSWORD=changeme
+MYSQL_DATABASE=ghost
+
+# BACKUPS
+# Ref: https://github.com/tiredofit/docker-db-backup#scheduling-options
+## Frequency (Minutes) 1440 = 1 per day
+DB_DUMP_FREQ=1440
+## Start Time (24h)
+DB_DUMP_BEGIN="2330"
+## Clean up after X minutes (10080 = 7 days)
+DB_CLEANUP_TIME=10080

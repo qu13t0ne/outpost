@@ -1,0 +1,78 @@
+# GHOST
+version: "3"
+
+services:
+  ghost:
+    container_name: ${CONTAINER_NAME}-app
+    image: ghost:5-alpine
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    # ports:
+      # - $PORT:2368
+    networks:
+      - default
+      - proxy
+    volumes:
+      - $APPDATA/content:/var/lib/ghost/content
+    environment:
+      # see https://ghost.org/docs/config/#configuration-options
+      PUID: $PUID
+      GUID: $GUID
+      database__client: mysql
+      database__connection__host: ${CONTAINER_NAME}-db
+      database__connection__user: $MYSQL_USER
+      database__connection__password: $MYSQL_PASSWORD
+      database__connection__database: $MYSQL_DATABASE
+      url: $FQDN
+      admin__url: $ADMIN_FQDN
+      mail__from: $MAIL_FROM
+      privacy__useUpdateCheck: true
+      privacy__useGravatar: false
+      privacy__useRpcPing: true
+      privacy__useStructuredData: true
+    depends_on:
+      - db
+
+  db:
+    container_name: ${CONTAINER_NAME}-db
+    image: mysql:8
+    restart: unless-stopped
+    volumes:
+      - $APPDATA/db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+
+  db-backup:
+    container_name: ${CONTAINER_NAME}-db-backup
+    image: tiredofit/db-backup
+    restart: always
+    networks:
+      - default
+    volumes:
+      - $APPDATA/db_backups/backups:/backup
+      - $APPDATA/db_backups/logfiles:/assets/logfiles
+      - ./backup_db/scripts_pre:/assets/scripts/pre
+      - ./backup_db/scripts_post:/assets/scripts/post
+    environment:
+      - DB_TYPE=mysql
+      - DB_HOST=$CONTAINER_NAME-db
+      - DB_NAME=$MYSQL_DATABASE
+      - DB_USER=$MYSQL_USER
+      - DB_PASS=$MYSQL_PASSWORD
+      - CHECKSUM=SHA1
+      - CONTAINER_ENABLE_MONITORING=FALSE
+      - DB_DUMP_FREQ
+      - DB_DUMP_BEGIN
+      - DB_CLEANUP_TIME
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+networks:
+  default:
+  proxy:
+    name: $NETWORK
+    external: true
