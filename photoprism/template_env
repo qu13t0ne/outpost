@@ -1,0 +1,23 @@
+# .env - Environment Variables
+
+# GENERAL
+PORT=2342
+NETWORK=proxy_net
+CONTAINER_NAME=photoprism
+CONFIG_PATH="./conf/"
+
+# DATA DIRECTORIES
+ORIGINALS_DIR="$CONFIG_PATH/Pictures"         # Original media files
+
+# PHOTOPRISM CONFIG
+PHOTOPRISM_SITE_URL="http://localhost:$PORT/"  # server URL in the format "http(s)://domain.name(:port)/(path)"
+PHOTOPRISM_ADMIN_USER="admin"                 # superadmin username
+PHOTOPRISM_ADMIN_PASSWORD="insecure"          # initial superadmin password (minimum 8 characters)
+PHOTOPRISM_SITE_CAPTION="AI-Powered Photos App"
+PHOTOPRISM_SITE_DESCRIPTION=""                # meta site description
+PHOTOPRISM_SITE_AUTHOR=""                     # meta site author
+
+# MARIADB CONFIG
+MARIADB_USER: "photoprism"
+MARIADB_PASSWORD: "insecure"
+MARIADB_ROOT_PASSWORD: "insecure"
