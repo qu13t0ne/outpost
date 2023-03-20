@@ -21,4 +21,4 @@ else
     touch $logFile
 fi
 
-echo -e "$(date +"%T")\t${1} Backup Starting on ${2} for ${3} at ${4}. Filename: ${5}" >> $logFile
+echo -e "$(date +Iseconds)\t${1} Backup Starting on ${2} for ${3} at ${4}. Filename: ${5}" >> $logFile

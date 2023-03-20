@@ -26,15 +26,15 @@ services:
     # image: nextcloud:apache
     build: .
     restart: always
-    # ports:
-      # - 127.0.0.1:8080:80
+    ports:
+      - 8080:80
     networks:
       - default
       - proxy
     volumes:
       - $APPDATA/ncdata:/var/www/html
       - $USERDATA:/var/www/html/data
-      - $SHARED:/mnt/
+      # - $SHARED:/mnt/
     environment:
       - MYSQL_HOST=db
       - REDIS_HOST=redis
