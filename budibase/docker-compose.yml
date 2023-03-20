@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     image: budibase.docker.scarf.sh/budibase/apps
     container_name: bbapps
+    networks:
+      - default
     environment:
       SELF_HOSTED: 1
       COUCH_DB_URL: http://${COUCH_DB_USER}:${COUCH_DB_PASSWORD}@couchdb-service:5984
@@ -36,6 +38,8 @@ services:
     restart: unless-stopped
     image: budibase.docker.scarf.sh/budibase/worker
     container_name: bbworker
+    networks:
+      - default
     environment:
       SELF_HOSTED: 1
       PORT: 4003
@@ -60,8 +64,10 @@ services:
   minio-service:
     restart: unless-stopped
     image: minio/minio
+    networks:
+      - default
     volumes:
-      - ${DATA_DIR:-./data}/minio_data:/data
+      - ${DATA_DIR:-./appdata}/minio_data:/data
     environment:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
@@ -75,8 +81,10 @@ services:
 
   proxy-service:
     restart: unless-stopped
-    # ports:
-    # - "127.0.0.1:${MAIN_PORT}:10000"
+    ports:
+      - "${MAIN_PORT}:10000"
+    expose:
+      - "10000"
     networks:
       - default
       - proxy
@@ -94,14 +102,18 @@ services:
   couchdb-service:
     restart: unless-stopped
     image: ibmcom/couchdb3
+    networks:
+      - default
     environment:
       - COUCHDB_PASSWORD=${COUCH_DB_PASSWORD}
       - COUCHDB_USER=${COUCH_DB_USER}
     volumes:
-      - ${DATA_DIR:-./data}/couchdb3_data:/opt/couchdb/data
+      - ${DATA_DIR:-./appdata}/couchdb3_data:/opt/couchdb/data
 
   couch-init:
     image: curlimages/curl
+    networks:
+      - default
     environment:
       PUT_CALL: "curl -u ${COUCH_DB_USER}:${COUCH_DB_PASSWORD} -X PUT couchdb-service:5984"
     depends_on:
@@ -111,13 +123,17 @@ services:
   redis-service:
     restart: unless-stopped
     image: redis
+    networks:
+      - default
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
-      - ${DATA_DIR:-./data}/redis_data:/data
+      - ${DATA_DIR:-./appdata}/redis_data:/data
 
   watchtower-service:
     restart: always
     image: containrrr/watchtower
+    networks:
+      - default
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --debug --http-api-update bbapps bbworker bbproxy
