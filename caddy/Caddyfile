@@ -128,13 +128,13 @@ auth.{$DOMAIN1} {
 }
 
 # ----- BUDIBASE ------------------------------------------
-budibase.{$DOMAIN1} {
-	import tls_CFDNS
-	route {
-		authorize with main_policy
-		reverse_proxy bbproxy:80
-	}
-}
+# budibase.{$DOMAIN1} {
+	# import tls_CFDNS
+	# route {
+		# authorize with main_policy
+		# reverse_proxy bbproxy:10000
+	# }
+# }
 
 # ----- CYBERCHEF -----------------------------------------
 cyberchef.{$DOMAIN1} {
@@ -154,7 +154,7 @@ nextcloud.{$DOMAIN1} {
     redir /.well-known/webfinger /remote.php/webfinger 301
     redir /.well-known/nodeinfo /remote.php/nodeinfo 301
 
-    reverse_proxy nextcloud:80
+    reverse_proxy nextcloud-app:80
 
     @forbidden {
             path /.htaccess
@@ -201,6 +201,15 @@ office.${DOMAIN1} {
 
 }
 
+# ----- PHOTOPRISM -----------------------------------------
+photos.{$DOMAIN1} {
+	import tls_CFDNS
+	route {
+		authorize with main_policy
+		reverse_proxy photoprism:2342
+	}
+}
+
 # ----- POSTGRESQL & PGADMIN ------------------------------
 # pgadmin.{$DOMAIN1} {
 	# import tls_CFDNS
@@ -210,34 +219,52 @@ office.${DOMAIN1} {
 	# }
 # }
 
+# ----- GHOST ------------------------------
+stationdark.com {
+	import tls_CFDNS
+	route {
+		# authorize with main_policy
+		reverse_proxy ghost-app:2368
+	}
+}
+
+admin.stationdark.com {
+	import tls_CFDNS
+	route {
+		# authorize with main_policy
+		rewrite / /ghost/{uri}
+		reverse_proxy ghost-app:2368
+   	}
+}
+
 # ===== LAN-ONLY SERVICES ON SECONDARY DOMAIN =============
-{$DOMAIN2} {
-	import tls_CFDNS
-	import local_only
-	# respond "Hello World"
-	redir https://{$DOMAIN1}
-}
-
-*.{$DOMAIN2} {
-	import tls_CFDNS
-	import local_only
-
-	@proxmox host proxmox.{$DOMAIN2}
-	handle @proxmox {
-		reverse_proxy https://192.168.1.23:8006 {
-			transport http {
-				tls_insecure_skip_verify
-			}
-		}
-	}
-
-	@omv host omv.{$DOMAIN2}
-	handle @omv {
-		reverse_proxy 192.168.1.103
-	}
-
-	# Fallback for otherwise unhandled domains
-	handle {
-		respond "404" 404
-	}
-}
+# {$DOMAIN2} {
+	# import tls_CFDNS
+	# import local_only
+	# # respond "Hello World"
+	# redir https://{$DOMAIN1}
+# }
+# 
+# *.{$DOMAIN2} {
+	# import tls_CFDNS
+	# import local_only
+# 
+	# @proxmox host proxmox.{$DOMAIN2}
+	# handle @proxmox {
+		# reverse_proxy https://192.168.1.23:8006 {
+			# transport http {
+				# tls_insecure_skip_verify
+			# }
+		# }
+	# }
+# 
+	# # @omv host omv.{$DOMAIN2}
+	# # handle @omv {
+		# # reverse_proxy 192.168.1.103
+	# # }
+# 
+	# # Fallback for otherwise unhandled domains
+	# handle {
+		# respond "404" 404
+	# }
+# }
