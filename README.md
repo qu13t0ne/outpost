@@ -24,6 +24,26 @@ Build yourself an outpost.
 
 * * * * *
 
+## Components Overview
+
+### Core Infrastructure & Security
+
+- **[Caddy v2 Reverse Proxy](./caddy/)**
+   - Including Caddy-Security for user authentication & MFA
+   - *Note:* Be sure to read the [Important Reverse Proxy Setup Information](./caddy/readme.md#important-reverse-proxy-setup-information) in the [Caddy readme](./caddy/readme.md) file.
+
+<!-- ### Databases -->
+
+<!-- - **[PostgreSQL and pgAdmin](./postgres/)** -->
+
+### Apps & Services
+
+- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
+- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
+- **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
+- **[Budibase](./budibase/)** - Low-code platform 
+- **[PhotoPrism](./photoprism)** - Photos management app
+
 ## Installation and Setup
 
 ### Summary
@@ -85,30 +105,11 @@ Finally, restart the Docker daemon.
 sudo systemctl restart docker.service
 ```
 
-## Components
-
-### Core Infrastructure & Security
-
-- **[Caddy v2 Reverse Proxy](./caddy/)**
-   - Including Caddy-Security for user authentication & MFA
-   - *Note:* Be sure to read the [Important Reverse Proxy Setup Information](./caddy/readme.md#important-reverse-proxy-setup-information) in the [Caddy readme](./caddy/readme.md) file.
-
-<!-- ### Databases -->
-
-<!-- - **[PostgreSQL and pgAdmin](./postgres/)** -->
-
-### Apps & Services
-
-- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
-- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
-- **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
-- **[Budibase](./budibase/)** - low-code platform 
-
 ## Metadata
 
-**Created By Mike Owens** | [GitHub](https://github.com/mikeo85) ~ [GitLab](https://gitlab.com/mikeo85) ~ [Mastodon](https://infosec.exchange/@m0x4d)  
+**Created By Mike Owens** | [GitHub](https://github.com/mikeo85) ~ [GitLab](https://gitlab.com/mikeo85) ~ [Mastodon](https://infosec.exchange/@m0x4d) 
 
-**License: [MIT](LICENSE)**
+**License: [MIT](LICENSE)** *(Covers the config & setup. Apps & services have their own licenses. Hack responsibly.)*
 
 <!-- **Version History:** See [commits](../../commits) or [release history](../../releases). -->
 
