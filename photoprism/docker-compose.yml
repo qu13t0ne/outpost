@@ -28,8 +28,8 @@ services:
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
-    ports:
-      - $PORT:2342 # HTTP port (host:container)
+    # ports:
+      # - $PORT:2342 # HTTP port (host:container)
     networks:
       - default
       - proxy
