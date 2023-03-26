@@ -220,7 +220,7 @@ photos.{$DOMAIN1} {
 # }
 
 # ----- GHOST ------------------------------
-stationdark.com {
+ghost.{$DOMAIN1} {
 	import tls_CFDNS
 	route {
 		# authorize with main_policy
@@ -228,7 +228,7 @@ stationdark.com {
 	}
 }
 
-admin.stationdark.com {
+ghost-admin.{$DOMAIN1} {
 	import tls_CFDNS
 	route {
 		# authorize with main_policy

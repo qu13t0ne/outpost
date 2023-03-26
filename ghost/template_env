@@ -4,8 +4,8 @@
 CONTAINER_NAME=ghost
 NETWORK=proxy_net
 PORT=2368
-FQDN="https://domain.tld"
-ADMIN_FQDN="https://admin.domain.tld"
+FQDN="https://ghost.domain.tld"
+ADMIN_FQDN="https://ghost-admin.domain.tld"
 MAIL_FROM="email@domain.tld"
 TZ=America/New_York
 APPDATA=./conf/
@@ -13,6 +13,7 @@ PUID=1000
 GUID=1000
 
 # MYSQL
+MYSQL_ROOT_PASSWORD=changeme
 MYSQL_USER=ghost
 MYSQL_PASSWORD=changeme
 MYSQL_DATABASE=ghost
