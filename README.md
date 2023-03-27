@@ -32,6 +32,10 @@ Build yourself an outpost.
    - Including Caddy-Security for user authentication & MFA
    - *Note:* Be sure to read the [Important Reverse Proxy Setup Information](./caddy/readme.md#important-reverse-proxy-setup-information) in the [Caddy readme](./caddy/readme.md) file.
 
+### Monitoring
+
+- **[Portainer](./portainer)** - Lightweight Docker management web UI (mostly I just use for status monitoring)
+
 <!-- ### Databases -->
 
 <!-- - **[PostgreSQL and pgAdmin](./postgres/)** -->
