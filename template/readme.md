@@ -1,16 +1,9 @@
-# Template (Service)
+# Template Files
 
-**About:** Template files for creating new services. \
-**Default Subdomain:** `example.domain.tld`
+**About:** Template files for creating new services.
 
 ## Setup
 
-- Copy this folder and edit the files as needed.
-
-## Backup
-
-- N/A
-
-## Resources
-
-- Link to app website, documents pages, etc.
+- Copy this folder to a new path with the name of the service.
+- Move `template-readme.md` to `readme.md`
+- Edit `docker-compose.yml`, `readme.md`, and `template_env` as needed.

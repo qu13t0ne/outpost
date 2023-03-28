@@ -15,22 +15,11 @@ Any other `caddy` commands can be run in the container by replacing `reload` abo
 
 ## Setup
 
-<!-- ### Important Reverse Proxy Setup Information -->
-<!-- This setup uses Docker's **host** networking for caddy's proxying. This is different than many similar setups and is done for two reasons. -->
-<!--  -->
-<!-- 1. The Nextcloud All-In-One Docker setup requires it. -->
-<!-- 2. Using Docker's host networking option makes it easier to proxy external services (i.e., services on other servers) in addition to just Dockerized services. -->
-<!--  -->
-<!-- However, this means that all Docker containers must expose a port on the Dockerhost instead of using the Docker bridge network or a custom network. Ports are restricted to the `localhost` using a format like the below, where `$EXPOSED_PORT` is the port accessible on the host that Caddy can use, and `$SERVICE_PORT` is whatever port the service is using inside the container. -->
-<!--  -->
-<!-- ``` -->
-<!-- ports: -->
-	<!-- - "127.0.0.1:$EXPOSED_PORT:$SERVICE_PORT" -->
-<!-- ``` -->
-<!--  -->
-<!-- Reverse proxies in Caddy are configured using config such as `reverse_proxy localhost:$EXPOSED_PORT`. -->
-<!--  -->
-<!-- For examples, reference [nginx-compose.yml](./nginx-compose.yml) and the `test2.{$DOMAIN1}` block in the [Caddyfile](./Caddyfile). -->
+- Copy `template-Caddyfile` to `Caddyfile`
+- Copy `template-env` to `.env`
+- Edit `.env`
+- Edit `Caddyfile` to add config for relevant activated services
+- Follow additional setup instructions that follow
 
 ### DNS Notes
 - This setup assumes using Cloudflare as nameserver & DNS management for your domain. Thus, the Cloudflare DNS module is included in the Dockerfile build for this Caddy instance and the Caddyfile is configured to use a Cloudflare API key.
@@ -63,6 +52,11 @@ docker network create proxy_net
   - Add email for cert generation & renewal notifications
   - Paste the Cloudflare API token generated in the previous step
   - Create a `JWT_SHARED_TOKEN` using a random alphanumeric string generator such as [this](https://www.grc.com/passwords.htm).
+
+
+### Create Caddyfile
+
+- Copy `template_Caddyfile` to `Caddyfile`
 
 ### Basic Functionality Tests
 
