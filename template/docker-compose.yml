@@ -7,7 +7,10 @@ services:
     image: <TBD>
     restart: unless-stopped # "no" always on-failure unless-stopped
     # ports:
-    # - 127.0.0.1:$PORT:<TBD>
+    # - $PORT:<TBD>
+    # networks: 
+    #   - default
+    #   - proxy
     volumes:
       - $CONFIG_PATH/:<TBD>
 

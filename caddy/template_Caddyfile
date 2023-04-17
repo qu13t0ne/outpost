@@ -1,0 +1,114 @@
+# ##### CADDYFILE #########################################
+# Ref: https://caddyserver.com/docs/caddyfile/options
+
+# ===== GLOBAL OPTIONS BLOCK ==============================
+{
+	# ----- General Options -------------------------------
+	debug
+
+	# ----- TLS Settings ----------------------------------
+	email {$EMAIL_FOR_ACME}
+	# Staging URL for Let's Encrypt is below. Uncomment for testing.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# local_certs # issue internal certs (for local / dev environments)
+
+	# ----- Caddy Security Settings -----------------------
+
+	order authenticate before respond
+	order authorize before basicauth
+
+	security {
+		local identity store localdb {
+			realm local
+			path /data/auth/users.json
+		}
+
+		authentication portal myportal {
+			# Pick one of the below 'crypto default token lifetime' options
+			# crypto default token lifetime 3600 # Token lifetime 1 hour
+			# crypto default token lifetime 86400 # Token lifetime 1 day
+			crypto default token lifetime 604800 # Token lifetime 7 days
+
+			crypto key sign-verify {env.JWT_SHARED_KEY}
+			cookie domain {$DOMAIN1}
+			enable identity store localdb
+			ui {
+				links {
+					"Home" https://{$DOMAIN1} icon "las la-home"
+					"My Identity" "/whoami" icon "las la-user"
+				}
+			}
+			transform user {
+				match origin local
+				action add role authp/user
+				ui link "Portal Settings" /settings icon "las la-cog"
+			}
+		}
+
+		authorization policy main_policy {
+			set auth url https://auth.{$DOMAIN1}
+			allow roles authp/admin authp/user
+			crypto key verify {env.JWT_SHARED_KEY}
+			acl rule {
+				comment allow users
+				match role authp/user
+				allow stop log info
+			}
+			acl rule {
+				comment default deny
+				match any
+				deny log warn
+			}
+		}
+	}
+	# ~~~ end caddy security ~~~
+}
+
+# ===== SNIPPETS ==========================================
+
+(tls_CFDNS) {
+	tls {
+		dns cloudflare {$CF_API_TOKEN}
+		resolvers 1.1.1.1
+	}
+}
+
+(local_only) {
+	@local_subnets {
+		not remote_ip private_ranges
+	}
+	respond @local_subnets "Unauthorized" 403
+}
+
+(handle_errors) {
+	rewrite * /{err.status_code}.html
+}
+
+# ===== SITE BLOCKS =======================================
+
+# ----- Initial Caddy Testing -----------------------------
+
+# # simple test
+# test1.{$DOMAIN} {
+	# respond "Hello, World!"
+# }
+# 
+# # testing to nginx
+# test2.{$DOMAIN} {
+	# reverse_proxy localhost:8080 # nginx
+# }
+# 
+# # testing local_only restriction
+# test3.{$DOMAIN} {
+	# import local_only
+	# reverse_proxy localhost:8080 # nginx
+# }
+
+# ----- Caddy-Security Auth & Portal ----------------------
+auth.{$DOMAIN} {
+	import tls_CFDNS
+	route {
+		authenticate with myportal
+	}
+}
+
