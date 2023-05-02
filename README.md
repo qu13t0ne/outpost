@@ -42,10 +42,10 @@ Build yourself an outpost.
 
 ### Apps & Services
 
-- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
-- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
-- **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
 - **[Budibase](./budibase/)** - Low-code platform 
+- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
+- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
+- **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
 - **[PhotoPrism](./photoprism)** - Photos management app
 
 ## Installation and Setup
