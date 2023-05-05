@@ -12,6 +12,7 @@
 
 `Caddyfile`
 ```
+########## EXAMPLE
 example.{$DOMAIN} {
     reverse_proxy <container_name>:<port>
 }
