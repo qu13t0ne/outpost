@@ -1,18 +1,23 @@
-#  (APP NAME)
+#  ADMINER
 version: "3"
 
 services:
-  <servicename>:
+  adminer:
     container_name: $CONTAINER_NAME
-    image: <TBD>
+    image: adminer
     restart: unless-stopped # "no" always on-failure unless-stopped
+    networks:
+      - proxy
+      - db
     # ports:
-    # - 127.0.0.1:$PORT:<TBD>
-    volumes:
-      - $CONFIG_PATH/:<TBD>
+    # - $PORT:8080
+    environment:
+      ADMINER_DESIGN: $ADMINER_DESIGN
 
 networks:
-  default:
   proxy:
     name: $NETWORK
+    external: true
+  db:
+    name: $DB_NETWORK
     external: true

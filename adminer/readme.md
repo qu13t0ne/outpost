@@ -1,16 +1,27 @@
-# Template (Service)
+# Adminer (Database Management)
 
-**About:** Template files for creating new services. \
-**Default Subdomain:** `example.domain.tld`
+**About:** Database management GUI. \
+**Default Subdomain:** `adminer.domain.tld`
 
 ## Setup
 
-- Copy this folder and edit the files as needed.
+- Copy `template_env` to `.env` and edit as appropriate.
+- Start container.
 
-## Backup
+## Reverse Proxy
 
-- N/A
+`Caddyfile`
+```
+########## ADMINER
+adminer.{$DOMAIN1} {
+	reverse_proxy adminer:8080
+}
+```
+
+## Backup and Restore
+
+The only files of value are the `.env` file and possibly the `docker-compose.yml` file, if customized.
 
 ## Resources
 
-- Link to app website, documents pages, etc.
+- https://www.adminer.org/

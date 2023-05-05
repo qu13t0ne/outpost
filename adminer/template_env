@@ -1,5 +1,7 @@
 # .env - Environment Variables
 
-PORT=TBD
-CONTAINER_NAME=TBD
-CONFIG_PATH="./conf/"
+CONTAINER_NAME=adminer
+NETWORK=proxy_net
+DB_NETWORK=db_net
+PORT=8080
+ADMINER_DESIGN=galkaev
