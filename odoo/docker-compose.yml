@@ -1,0 +1,45 @@
+# ODOO - Business apps suite 
+version: "3"
+
+services:
+  db:
+    container_name: ${CONTAINER_NAME}_db
+    image: postgres:latest
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    networks: 
+      - default
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    volumes:
+      - pg-odoo: /var/lib/postgresql/data
+
+  odoo:
+    image: odoo:latest
+    container_name: ${CONTAINER_NAME}_app
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    ports:
+      - $PORT:8069
+    networks:
+      - default
+      - proxy
+    environment:
+      - HOST=db
+      - PORT=5432
+      - USER=$POSTGRES_USER
+      - PASSWORD=$POSTGRES_PASSWORD
+    volumes:
+      - ./extra-addons:/mnt/extra-addons
+      - data:/var/lib/odoo
+    depends_on:
+      - db
+
+volumes:
+  pg-odoo:
+  data:
+
+networks:
+  default:
+  proxy:
+    name: $NETWORK
+    external: true
