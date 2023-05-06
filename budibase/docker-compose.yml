@@ -8,6 +8,7 @@ services:
     image: budibase.docker.scarf.sh/budibase/apps
     networks:
       - default
+      - db
     environment:
       SELF_HOSTED: 1
       COUCH_DB_URL: http://${COUCH_DB_USER}:${COUCH_DB_PASSWORD}@couchdb-service:5984
@@ -84,6 +85,7 @@ services:
     networks:
       - default
       - proxy
+      - db
     environment:
       - PROXY_RATE_LIMIT_WEBHOOKS_PER_SECOND=10
       - PROXY_RATE_LIMIT_API_PER_SECOND=20
@@ -141,4 +143,7 @@ networks:
   default:
   proxy:
     name: $NETWORK
+    external: true
+  db:
+    name: $DB_NETWORK
     external: true
