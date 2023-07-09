@@ -104,8 +104,12 @@ services:
   couchdb-service:
     restart: unless-stopped
     image: ibmcom/couchdb3
+    ports:
+      - 5984:5984
+    container_name: ${CONTAINER_NAME}-couchdb
     networks:
       - default
+      - proxy
     environment:
       - COUCHDB_PASSWORD=${COUCH_DB_PASSWORD}
       - COUCHDB_USER=${COUCH_DB_USER}
