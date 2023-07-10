@@ -1,0 +1,21 @@
+# .env - Environment Variables
+
+CONTAINER_NAME=wordpress
+PORT=8080
+CONFIG_PATH="./conf/"
+NETWORK=proxy_net
+TZ=America/New_York
+
+# Database
+MYSQL_ROOT_PASSWORD=changeme
+DB_USER=wordpress
+DB_PASSWORD=changeme
+DB_NAME=wordpress
+
+# SMTP
+SMTP_HOSTNAME=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=
+

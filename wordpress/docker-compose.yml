@@ -1,0 +1,89 @@
+# WORDPRESS 
+version: "3"
+
+services:
+  wordpress:
+    container_name: $CONTAINER_NAME
+      #    image: wordpress:php8.0-fpm-alpine
+    image: wordpress:latest
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    ports:
+      - $PORT:80
+    networks: 
+      - default
+      - proxy
+    volumes:
+      - $CONFIG_PATH/wordpress/:/var/www/html
+    depends_on:
+      - wordpress-db
+    environment:
+      # Below is sourced from https://github.com/docker-library/wordpress/issues/30#issuecomment-797180870
+      SMTP_HOSTNAME: $SMTP_HOSTNAME
+      SMTP_PORT: $SMTP_PORT
+      SMTP_USER: $SMTP_USER
+      SMTP_PASSWORD: $SMTP_PASSWORD
+      SMTP_FROM: $SMTP_FROM
+      WORDPRESS_DB_HOST: $CONTAINER_NAME-db
+      WORDPRESS_DB_USER: $DB_USER
+      WORDPRESS_DB_PASSWORD: $DB_PASSWORD
+      WORDPRESS_DB_NAME: $DB_NAME
+      WORDPRESS_CONFIG_EXTRA: |
+          // SMTP Settings
+          require_once( ABSPATH .'wp-includes/plugin.php' );
+          add_action( 'phpmailer_init', 'mail_smtp' );
+          function mail_smtp( $$phpmailer ) {
+              $$phpmailer->isSMTP();
+              $$phpmailer->Host = getenv('SMTP_HOSTNAME');
+              $$phpmailer->Port = getenv('SMTP_PORT');
+              $$phpmailer->Username = getenv('SMTP_USER');
+              $$phpmailer->Password = getenv('SMTP_PASSWORD');
+              $$phpmailer->From = getenv('SMTP_FROM');
+              $$phpmailer->FromName = getenv('SMTP_FROM_NAME');
+
+              // Additional settings
+              $$phpmailer->SMTPAuth = true;
+              $$phpmailer->SMTPSecure = "tls";
+              $$phpmailer->SMTPAutoTLS = true;
+  
+              // Filter out client message body and output debug info to the logs
+              // NOTE: Log level must be set to '2' or higher in order for the filter to work
+              $$phpmailer->SMTPDebug = 2;
+
+              $$phpmailer->Debugoutput = function($$str) {
+                  static $$logging = true;
+                  if ($$logging === false && strpos($$str, 'SERVER -> CLIENT') !== false) {
+                      $$logging = true;
+                  }
+                  if ($$logging) {
+                      error_log("SMTP " . "$$str");
+                  }
+                  if (strpos($$str, 'SERVER -> CLIENT: 354') !== false) {
+                      $$logging = false;
+                  }
+              };
+          }
+          // Prevent Wordpress from overriding the SMTP FROM address (Office 365 compatibility)
+          add_filter( 'wp_mail_from', function( $$email ) {
+              return $$_ENV["SMTP_FROM"];
+          });
+
+  wordpress-db:
+    container_name: $CONTAINER_NAME-db
+    image: mariadb:latest
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    networks: 
+      - default
+        #  - proxy
+    volumes:
+      - $CONFIG_PATH/db/:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: $DB_NAME
+      MYSQL_USER: $DB_USER
+      MYSQL_PASSWORD: $DB_PASSWORD
+
+networks:
+  default:
+  proxy:
+    name: $NETWORK
+    external: true
