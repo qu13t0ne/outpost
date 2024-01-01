@@ -8,9 +8,24 @@
 - Create `.env` from `template-env`
 - Run the container
 
+### Reverse Proxy
+
+`Caddyfile`
+```
+########## FLAME HOMEPAGE
+{$DOMAIN},www.{$DOMAIN} {
+    reverse_proxy <container_name>:<port>
+}
+```
+
 ## Backup
 
-- #TODO
+- Include this entire directory in backups.
+
+### Restore
+
+- Replace this entire directory from backup.
+- Launch container.
 
 ## Resources
 
