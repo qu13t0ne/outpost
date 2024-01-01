@@ -7,6 +7,16 @@
 
 This one is simple, just run the container.
 
+## Reverse Proxy
+
+`Caddyfile`
+```
+########## CYBERCHEF
+cyberchef.{$DOMAIN} {
+    reverse_proxy cyberchef:8000
+}
+```
+
 ## Backup
 
 None. All data is stored client-side. *That means you need to back up your own cyberchef recipes some other way!*
