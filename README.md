@@ -36,28 +36,37 @@ Build yourself an outpost.
 
 - **[Portainer](./portainer)** - Lightweight Docker management web UI (mostly I just use for status monitoring)
 
-<!-- ### Databases -->
+### Databases
 
+- **[Adminer](./adminer/)** - Database management web UI
+- **[MongoDB](./mongodb/)** - MongoDB non-relational database
 <!-- - **[PostgreSQL and pgAdmin](./postgres/)** -->
 
 ### Apps & Services
 
-- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
-- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
-- **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
 - **[Budibase](./budibase/)** - Low-code platform 
+- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
+- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
+- **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
 - **[PhotoPrism](./photoprism)** - Photos management app
 
 ## Installation and Setup
 
 ### Summary
 
-1. Prep your host system.
-2. Follow startup instructions on each of the component readme pages linked below.
+1. **Prep your host system.**
+2. **Follow startup instructions** on each of the component readme pages linked in the [Components Overview above](#components-overview).
 
 ### Prep Host System
 
 Linux is preferred for a server. I tend to run Debian-based distros, but any Linux distro should work fine. Since stuff is mostly Docker-based, Outpost can also be run on a local workstation as `localhost`, including MacOS (partially tested) and theoretically Windows (if you *must*, not tested, some mods probably necessary). All setup and commands in this repo assume a Linux (Debian) host, so YMMV.
+
+**Outline**
+- [Filesystem Setup Notes](#filesystem-setup-notes)
+   - [Optional NFS Considerations](#optional-nfs-considerations)
+- [Install Docker](#install-docker)
+- [Add Docker Daemon Settings](#add-docker-daemon-settings)
+- [Create Docker Networks](#create-docker-networks)
 
 #### Filesystem Setup Notes
 
@@ -108,6 +117,13 @@ Finally, restart the Docker daemon.
 ```shell
 sudo systemctl restart docker.service
 ```
+
+### Create Docker Networks
+Create two networks to use for Docker containers. One for the proxy service and one for databases. This allows some segregation of services, so only containers that need to be proxied are exposed to the proxy side of things and only containers that are shared databases or need access to them will have access to the db network.
+``` 
+docker network create proxy_net 
+docker network create db_net
+``` 
 
 ## Metadata
 

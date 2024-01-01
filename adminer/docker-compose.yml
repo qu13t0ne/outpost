@@ -1,0 +1,23 @@
+#  ADMINER
+version: "3"
+
+services:
+  adminer:
+    container_name: $CONTAINER_NAME
+    image: adminer
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    networks:
+      - proxy
+      - db
+    # ports:
+    # - $PORT:8080
+    environment:
+      ADMINER_DESIGN: $ADMINER_DESIGN
+
+networks:
+  proxy:
+    name: $NETWORK
+    external: true
+  db:
+    name: $DB_NETWORK
+    external: true

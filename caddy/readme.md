@@ -25,12 +25,6 @@ Any other `caddy` commands can be run in the container by replacing `reload` abo
 - This setup assumes using Cloudflare as nameserver & DNS management for your domain. Thus, the Cloudflare DNS module is included in the Dockerfile build for this Caddy instance and the Caddyfile is configured to use a Cloudflare API key.
 - The Acme DNS challenge is enabled for TSL certificate generation. TLS certificates can therefore be generated for sites and services that are not internet-routable (i.e. internal-only sites). This is not possible if using the HTTP challenge.
 
-### Create new docker network 
-
-``` 
-docker network create proxy_net 
-``` 
-
 ### Set up Cloudflare DNS ACME Cert Generation
 
 - Set up DNS records in Cloudflare for your domain, as shown below. This creates a primary `A` record for the domain and a wildcard `CNAME` record for first-level subdomains. Start by leaving proxy disabled, as it simplifies any initial troubleshooting. Once certs are generating and sites are routing successfully, proxy can be enabled.

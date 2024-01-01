@@ -1,0 +1,55 @@
+#  MONGODB
+version: "3"
+
+services:
+  mongo:
+    container_name: $CONTAINER_NAME
+    image: mongo:${MONGO_VERSION}
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    ports:
+      - $DB_PORT:27017
+    networks: 
+      - default
+      - db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+      - ./data:/mnt/data
+
+  mongo-express:
+    container_name: $CONTAINER_NAME-gui
+    image: mongo-express 
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    depends_on:
+      - mongo 
+    ports:
+    - $GUI_PORT:8081
+    networks: 
+      - default
+      - proxy
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=${CONTAINER_NAME}
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=${MONGO_ROOT_USER}
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@${CONTAINER_NAME}:27017/db?ssl=false
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGOEXPRESS_LOGIN}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGOEXPRESS_PASSWORD}
+      - ME_CONFIG_OPTIONS_EDITORTHEME=${MONGOEXPRESS_THEME}
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  default:
+  proxy:
+    name: $NETWORK
+    external: true
+  db:
+    name: $DB_NETWORK
+    external: true

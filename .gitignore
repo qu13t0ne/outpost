@@ -2,4 +2,7 @@
 appdata/
 conf/
 WIP/
+CUSTOM/
 Caddyfile
+db/
+mongodb/data/
