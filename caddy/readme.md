@@ -186,9 +186,16 @@ Where:
 Whenever the `users.json` file is updated, reload Caddy to apply the changes.
 *Note: Sometimes for whatever reason this doesn't seem to work. In these cases, just restart the container with `docker compose restart`.*
 
-## Backup
+## Backup and Restore
 
-- #TODO
+### Backup
+
+- Include this entire directory in backups.
+
+### Restore
+
+- Replace this entire directory from backup.
+- Launch container.
 
 ## Resources
 
