@@ -5,10 +5,10 @@
 #        Written by: Mike Owens
 #        Email:      mikeowens (at) fastmail (dot) com
 #        Website:    https://michaelowens.me
-#        GitLab:     https://gitlab.com/mikeo85
-#        GitHub:     https://github.com/mikeo85
-#        Mastodon:   https://infosec.exchange/@m0x4d
-#        Twitter:    https://twitter.com/quietmike8192
+#        GitLab:     https://gitlab.com/qu13t0ne
+#        GitHub:     https://github.com/qu13t0ne
+#        Mastodon:   https://infosec.exchange/@qu13t0ne
+#        X (Twitter):https://x.com/qu13t0ne
 #
 #  This script will output the necessary JSON to add a
 #  new user to the Caddy-Security users.json file. It

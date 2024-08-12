@@ -20,7 +20,7 @@ Stand-alone self-hosting infrastructure with security and a range of apps. Caddy
 
 Build yourself an outpost.
 
-*Repo URL: [https://github.com/mikeo85/outpost](https://github.com/mikeo85/outpost)*
+*Repo URL: [https://github.com/qu13t0ne/outpost](https://github.com/qu13t0ne/outpost)*
 
 * * * * *
 
@@ -127,7 +127,7 @@ docker network create db_net
 
 ## Metadata
 
-**Created By Mike Owens** | [GitHub](https://github.com/mikeo85) ~ [GitLab](https://gitlab.com/mikeo85) ~ [Mastodon](https://infosec.exchange/@m0x4d) 
+**Created By Mike Owens** | [GitHub](https://github.com/qu13t0ne) ~ [GitLab](https://gitlab.com/qu13t0ne) ~ [Mastodon](https://infosec.exchange/@qu13t0ne) 
 
 **License: [MIT](LICENSE)** *(Covers the config & setup. Apps & services have their own licenses. Hack responsibly.)*
 
