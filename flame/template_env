@@ -1,6 +1,0 @@
-# .env - Environment Variables
-
-NETWORK=proxy_net
-CONTAINER_NAME=homepage
-APPDATA=/srv/flame
-FLAME_PASSWORD=changeme

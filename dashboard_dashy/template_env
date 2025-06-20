@@ -1,0 +1,6 @@
+# .env - Environment Variables
+
+CONTAINER_NAME=dashy
+PORT=8080
+MY_UID=1000
+MY_GID=1000

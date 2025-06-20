@@ -1,0 +1,15 @@
+services:
+  dashy:
+    image: lissy93/dashy
+    container_name: $CONTAINER_NAME
+    volumes:
+      - ./user-data:/app/user-data
+    ports:
+      - $PORT:8080
+    environment:
+      - NODE_ENV=production
+      - UID=$MY_UID
+      - GID=$MY_GID
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
