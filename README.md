@@ -24,6 +24,15 @@ Build yourself an outpost.
 
 * * * * *
 
+## Summary of Services and Components
+
+- **Tier 0: Reverse Proxy, Internet Access, and IAM**
+   - [Caddy Reverse Proxy with Cloudflared and [IdP TBD]](./TBD)
+- **Tier 1: Apps and Services**
+   - [Dashboard: Dashy](./dashboard_dashy/readme.md)
+
+# OLD NOTES -- NEED REVISION
+
 ## Components Overview
 
 ### Core Infrastructure & Security
