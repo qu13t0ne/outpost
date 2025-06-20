@@ -30,4 +30,5 @@
 ## Resources
 
 - https://dashy.to/
+- https://dashy.to/docs/deployment#using-docker-compose
 - https://github.com/lissy93/dashy
