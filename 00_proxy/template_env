@@ -1,15 +1,14 @@
 # .env file
 
 # BASIC CONFIG
-NETWORK=proxy_net
-APPDATA=/srv/caddy
+APPDATA=./config
 
 # ROUTING & TLS CONFIG
-DOMAIN1=localhost
-DOMAIN2=localhost
 EMAIL_FOR_ACME=email@domain.tld
 ## Add Cloudflare API token below. Scope = 'All zones - Zone:Read, DNS:Edit'
 CF_API_TOKEN=changeme!
+## Cloudflared Tunnel Token
+TUNNEL_TOKEN=changeme!
 
 # CADDY SECURITY CONFIG
 ## Create a JWT_SHARED_TOKEN using a random alphanumeric string generator such as https://www.grc.com/passwords.htm

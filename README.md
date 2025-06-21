@@ -24,40 +24,35 @@ Build yourself an outpost.
 
 * * * * *
 
-## Summary of Services and Components
+## Components Overview
 
-- **Tier 0: Reverse Proxy, Internet Access, and IAM**
-   - [Caddy Reverse Proxy with Cloudflared and [IdP TBD]](./TBD)
-- **Tier 1: Apps and Services**
-   - [Dashboard: Dashy](./dashboard_dashy/readme.md)
+- **Reverse Proxy, Internet Access, and IAM**
+   - [Caddy Reverse Proxy](./00_proxy/) - Provides reverse proxy to all hosted services
+   - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall
+- **Apps and Services**
+   - [Dashy](./dashboard_dashy/) - Dashboard and start page
+   - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app
 
 # OLD NOTES -- NEED REVISION
 
-## Components Overview
-
-### Core Infrastructure & Security
-
-- **[Caddy v2 Reverse Proxy](./caddy/)**
-   - Including Caddy-Security for user authentication & MFA
-   - *Note:* Be sure to read the [Important Reverse Proxy Setup Information](./caddy/readme.md#important-reverse-proxy-setup-information) in the [Caddy readme](./caddy/readme.md) file.
-
-### Monitoring
-
-- **[Portainer](./portainer)** - Lightweight Docker management web UI (mostly I just use for status monitoring)
-
-### Databases
-
-- **[Adminer](./adminer/)** - Database management web UI
-- **[MongoDB](./mongodb/)** - MongoDB non-relational database
-<!-- - **[PostgreSQL and pgAdmin](./postgres/)** -->
-
-### Apps & Services
-
-- **[Budibase](./budibase/)** - Low-code platform 
-- **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app
-- **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page
-- **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution
-- **[PhotoPrism](./photoprism)** - Photos management app
+<!---->
+<!-- ### Monitoring -->
+<!---->
+<!-- - **[Portainer](./portainer)** - Lightweight Docker management web UI (mostly I just use for status monitoring) -->
+<!---->
+<!-- ### Databases -->
+<!---->
+<!-- - **[Adminer](./adminer/)** - Database management web UI -->
+<!-- - **[MongoDB](./mongodb/)** - MongoDB non-relational database -->
+<!-- <!-- - **[PostgreSQL and pgAdmin](./postgres/)** --> -->
+<!---->
+<!-- ### Apps & Services -->
+<!---->
+<!-- - **[Budibase](./budibase/)** - Low-code platform  -->
+<!-- - **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app -->
+<!-- - **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page -->
+<!-- - **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution -->
+<!-- - **[PhotoPrism](./photoprism)** - Photos management app -->
 
 ## Installation and Setup
 
@@ -74,8 +69,6 @@ Linux is preferred for a server. I tend to run Debian-based distros, but any Lin
 - [Filesystem Setup Notes](#filesystem-setup-notes)
    - [Optional NFS Considerations](#optional-nfs-considerations)
 - [Install Docker](#install-docker)
-- [Add Docker Daemon Settings](#add-docker-daemon-settings)
-- [Create Docker Networks](#create-docker-networks)
 
 #### Filesystem Setup Notes
 
@@ -105,47 +98,14 @@ Individual services may have additional considerations when relying on NFS stora
 
 Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) according to the latest Docker instructions.
 
-#### Add Docker Daemon Settings
-
-Add some default settings to the Docker daemon for log rotation and container privilege restriction.
-
-- Review contents of the [daemon.json](./daemon.json) file in this repo.
-- Check if a default `daemon.json` file has already been created by Docker.
-```shell
-ls /etc/docker/daemon.json
-```
-- **IF** a default file does not exist (meaning the above command returns something like `ls: cannot access '/etc/docker/daemon.json': No such file or directory`), **THEN**:
-	- Copy the `daemon.json` file from this repo to the default docker location
-	```shell
-	sudo cp ./daemon.json /etc/docker/daemon.json
-	```
-- **ELSE** (i.e., a file already exists at `/etc/docker/daemon.json`):
-	- Modify the existing file to add the settings from this repo's version.
-
-Finally, restart the Docker daemon.
-```shell
-sudo systemctl restart docker.service
-```
-
-### Create Docker Networks
-Create two networks to use for Docker containers. One for the proxy service and one for databases. This allows some segregation of services, so only containers that need to be proxied are exposed to the proxy side of things and only containers that are shared databases or need access to them will have access to the db network.
-``` 
-docker network create proxy_net 
-docker network create db_net
-``` 
-
 ## Metadata
 
-**Created By Mike Owens** | [GitHub](https://github.com/qu13t0ne) ~ [GitLab](https://gitlab.com/qu13t0ne) ~ [Mastodon](https://infosec.exchange/@qu13t0ne) 
+**Created By Mike Owens** | [GitHub](https://github.com/qu13t0ne) ~ [GitLab](https://gitlab.com/qu13t0ne) ~ [Bluesky](https://bsky.app/profile/qu13t0ne.bsky.social)~ [Mastodon](https://infosec.exchange/@qu13t0ne) 
 
 **License: [MIT](LICENSE)** *(Covers the config & setup. Apps & services have their own licenses. Hack responsibly.)*
-
-<!-- **Version History:** See [commits](../../commits) or [release history](../../releases). -->
 
 ## Resources and Acknowledgments
 This project is built on plenty of help from other online resources and repos. I try to acknowledge them wherever possible, but I'm human so I've probably forgotten some.
 
-- About open source licenses: [ChooseALicense.com](https://choosealicense.com) / [Open Source Initiative](https://opensource.org/licenses) / [Developer's Guide](https://www.toptal.com/open-source/developers-guide-to-open-source-licenses)
 - https://github.com/DoTheEvo/selfhosted-apps-docker
-- Caddy Security plugin: https://authp.github.io/
 - https://github.com/docker/awesome-compose

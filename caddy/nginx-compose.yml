@@ -1,8 +1,0 @@
-version: "3.7"
-services:
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "127.0.0.1:8080:80"
