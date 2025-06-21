@@ -1,15 +1,8 @@
-#  CYBERCHEF 
-version: "3"
-
+#  CYBERCHEF
 services:
   cyberchef:
-    container_name: cyberchef
+    container_name: $CONTAINER_NAME
     image: mpepping/cyberchef
     restart: always
-    # ports:
-      # - 8000:8000
-
-networks:
-  default:
-    name: proxy_net
-    external: true
+    ports:
+      - $PORT:8000

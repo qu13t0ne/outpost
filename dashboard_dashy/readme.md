@@ -1,6 +1,7 @@
 # Dashboard: DASHY
 
-**About:** "A self-hostable personal dashboard built for you. Includes status-checking, widgets, themes, icon packs, a UI editor and tons more!"
+- **About:** "A self-hostable personal dashboard built for you. Includes status-checking, widgets, themes, icon packs, a UI editor and tons more!"
+- **Default Port:** 8080
 
 ## Setup
 
