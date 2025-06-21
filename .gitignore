@@ -6,6 +6,6 @@ CUSTOM/
 Caddyfile
 db/
 mongodb/data/
-dashboard_dashy/user-data/
+dashy/user-data/
 *.custom
 */APPDATA/
