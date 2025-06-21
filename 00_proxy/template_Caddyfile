@@ -1,0 +1,97 @@
+# ===== GLOBAL OPTIONS BLOCK ==============================
+{
+	# ----- General Options -------------------------------
+	debug
+
+	# ----- TLS Settings ----------------------------------
+	email {$EMAIL_FOR_ACME}
+	# Staging URL for Let's Encrypt is below. Uncomment for testing.
+	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# local_certs # issue internal certs (for local / dev environments)
+}
+
+# ===== SNIPPETS ==========================================
+
+(use_tls) {
+	tls {
+		dns cloudflare {$CF_API_TOKEN}
+		resolvers 1.1.1.1
+	}
+}
+
+(errorHandling) {
+	handle_errors {
+		root * /static/
+
+		# Custom page for 403 Forbidden
+		@403 {
+			expression {http.error.status_code} == 403
+		}
+		rewrite @403 /403.html
+		file_server
+
+		# Custom page for 404 Not Found
+		@404 {
+			expression {http.error.status_code} == 404
+		}
+		rewrite @404 /404.html
+		file_server
+
+		# Custom page for 500 Internal Server Error
+		@500 {
+			expression {http.error.status_code} == 500
+		}
+		rewrite @500 /500.html
+		file_server
+
+		# Custom page for any other 4xx or 5xx errors
+		@4xx5xx {
+			expression {http.error.status_code} >= 400 && {http.error.status_code} <600
+		}
+		rewrite @4xx5xx /error.html
+		file_server
+	}
+}
+
+(localOnly) {
+	@docker_internal_network remote_ip 172.16.0.0/12
+	handle @docker_internal_network {
+		error 403
+	}
+
+	# Modify based on IP address ranges used in your network
+	@off_network not remote_ip 192.168.1.0/24 192.168.2.0/24 127.0.0.1 ::1
+	handle @off_network {
+		error 403
+	}
+
+	@cloudflared header CF-Connecting-IP *
+	handle @cloudflared {
+		error 403
+	}
+}
+
+(serveStatic200) {
+	root * /static/
+
+	import use_tls
+	import errorHandling
+
+	rewrite * /200.html
+	file_server
+}
+
+# ===== SITE BLOCKS =======================================
+
+# ----- Initial Caddy Testing -----------------------------
+
+domain.tld {
+	tls internal	# use for stage 1 testing with internal Caddy cert
+	# import use_tls	# use for stage 2 testing to get external legit certs
+	import errorHandling
+	# import localOnly
+	import serveStatic200
+}
+
+# ----- Main  -----------------------------
+

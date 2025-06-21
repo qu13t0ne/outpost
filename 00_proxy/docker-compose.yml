@@ -1,0 +1,37 @@
+services:
+
+  caddy:
+    # image: caddy:2
+    build: .
+    container_name: caddy
+    restart: always
+    ports:
+      # - "80:80"
+      - "443:443"
+    environment:
+      - EMAIL_FOR_ACME
+      - CF_API_TOKEN
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${APPDATA}/caddy/data:/data
+      - ${APPDATA}/caddy/config:/config
+      - ./static:/static:ro
+    networks:
+      - proxy
+      # - auth
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token $TUNNEL_TOKEN
+    container_name: tunnel
+    environment:
+      - TUNNEL_TOKEN
+    restart: always
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: proxy_net
+  # auth:
+  #   name: auth_net
