@@ -1,19 +1,21 @@
 # CyberChef (Cyber Swiss Army Knife)
 
-**About:** "GCHQ CyberChef in a container. CyberChef is the Cyber Swiss Army Knife web app for encryption, encoding, compression and data analysis." \
-**Default Subdomain:** `cyberchef.domain.tld` \
+- **About:** "GCHQ CyberChef in a container. CyberChef is the Cyber Swiss Army Knife web app for encryption, encoding, compression and data analysis."
+- **Default Port:** 8000
 
 ## Setup
 
-This one is simple, just run the container.
+- Copy `template_env` to `.env`
+- Modify `.env` as needed
+- Run container
 
 ## Reverse Proxy
 
 `Caddyfile`
 ```
 ########## CYBERCHEF
-cyberchef.{$DOMAIN} {
-    reverse_proxy cyberchef:8000
+cyberchef.domain.tld {
+    reverse_proxy <server_ip>:8000
 }
 ```
 
