@@ -2,6 +2,4 @@
 
 CONTAINER_NAME=portainer
 PORT=9443
-CONFIG_PATH="./conf/"
-NETWORK=proxy_net
-TZ=America/New_York
+CONFIG_PATH=./conf/

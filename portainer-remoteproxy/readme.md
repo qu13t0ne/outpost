@@ -17,8 +17,12 @@
 
 `Caddyfile`
 ```
-portainer.{$DOMAIN} {
-    reverse_proxy <host_ip>:9443
+portainer.domain.tld {
+    reverse_proxy https://<host_ip>:9443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
 }
 ```
 
