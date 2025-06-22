@@ -24,74 +24,67 @@ Build yourself an outpost.
 - **Reverse Proxy, Internet Access, and IAM**
    - [Caddy Reverse Proxy](./00_proxy/) - Provides reverse proxy to all hosted services
    - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall
+- **Monitoring:**
+   - [Portainer](./portainer) - Lightweight Docker management web UI (mostly I just use for status monitoring)
+      - Note, there's also a parallel [Portainer-remotehost](./portainer-remotehost) for use on a separate host from the proxy host
 - **Apps and Services**
-   - [Dashy](./dashboard_dashy/) - Dashboard and start page
    - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app
+   - [Dashy](./dashboard_dashy/) - Dashboard and start page
 
-# OLD NOTES -- NEED REVISION
-
-<!---->
-<!-- ### Monitoring -->
-<!---->
-<!-- - **[Portainer](./portainer)** - Lightweight Docker management web UI (mostly I just use for status monitoring) -->
-<!---->
-<!-- ### Databases -->
-<!---->
 <!-- - **[Adminer](./adminer/)** - Database management web UI -->
 <!-- - **[MongoDB](./mongodb/)** - MongoDB non-relational database -->
 <!-- <!-- - **[PostgreSQL and pgAdmin](./postgres/)** --> -->
-<!---->
-<!-- ### Apps & Services -->
-<!---->
 <!-- - **[Budibase](./budibase/)** - Low-code platform  -->
-<!-- - **[CyberChef](./cyberchef/)** - Cyber Swiss Army Knife web app -->
-<!-- - **[Flame Startpage](./flame/)** - Easy startpage and bookmarks page -->
 <!-- - **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution -->
 <!-- - **[PhotoPrism](./photoprism)** - Photos management app -->
 
 ## Installation and Setup
 
-### Summary
+### Decide Deployment Architecture
 
-1. **Prep your host system.**
-2. **Follow startup instructions** on each of the component readme pages linked in the [Components Overview above](#components-overview).
+For deployment architecture, there are two basic approaches:
+
+1. All services on a single host.
+2. Proxy services on one host and other services on one or more separate hosts. This option provides some additional segregation between the proxy functions and the various services and allows proxying to continue uninterrupted even if you accidentally bork an app server.
+
+The decision here will impact how container networking is configured, i.e., when an internal Docker network can be used between containers vs. when a container should publish a port to the localhost for access by the proxy.
+Not a big deal either way, just something to be aware of & potentially modify in the container configs.
+Details below in relevant sections.
+
+FWIW, I'm using option 2, with a host for proxy and a host for running apps.
+Default saved configurations in most `docker-compose.yml` files will reflect this.
 
 ### Prep Host System
 
-Linux is preferred for a server. I tend to run Debian-based distros, but any Linux distro should work fine. Since stuff is mostly Docker-based, Outpost can also be run on a local workstation as `localhost`, including MacOS (partially tested) and theoretically Windows (if you *must*, not tested, some mods probably necessary). All setup and commands in this repo assume a Linux (Debian) host, so YMMV.
+See [Host System Setup](./docs/host-system-setup.md).
 
-**Outline**
-- [Filesystem Setup Notes](#filesystem-setup-notes)
-   - [Optional NFS Considerations](#optional-nfs-considerations)
-- [Install Docker](#install-docker)
+### Proxy-Only: Create Docker Network
 
-#### Filesystem Setup Notes
+**Only on the host running the Caddy proxy:**
 
-It's general best practice to run any apps / functions on a separate partition than the root OS.
-- *Option 1:* Partition the hard drive to separate `/` (root) and everything else. At minimum, if you blow through the available storage at least you haven't also crippled the operating system.
-- *Option 2:* Mount a separate drive for data.
-- *Option 3:* Mount a shared drive for data, e.g. using NFS. This has the added benefit of separating the data storage function onto a separate server from the apps / services function. But introduces extra complications. It's best suited for user files that need to be shared across systems, whereas databases are better saved on the local file system (e.g., `/srv`), then properly backed up
+Create a shared network for the Caddy container to reach and proxy other docker containers on the host.
 
-I've configured this project to default to *Option 2* above. The `/srv` directory is assumed to be on a separate drive from the OS. 
-- Docker is configured (see *Docker Daemon Settings* below) to use `/srv/docker` as the default location for docker-related files (containers, volumes, logs, etc.) instead of the standard `/var/lib/docker`.
-- Containers and services will by default save persistent data to various folders in `/srv`, as indicated in the `template-env` files.
+```
+docker network create outpost
+```
 
-##### Optional NFS Considerations
+This is not required for containers running on a different host, as published ports will be used instead.
 
-For using NFS to work:
-1. The NFS server must enable the `all_squash` setting on the export.
-2. The NFS client config must include the configuration options `user` (allow non-root user to mount) and `rw` (read-write).
-3. Any user account that needs read-write access to the share, including system users leveraged by containers, must be added to the `nogroup` group
-   ```
-   sudo usermod -a -G nogroup <username>
-   ```
-4. Environment variables for data storage will need to be updated based on the relevant NFS share location on the **Outpost** host file system.
+### Launch Proxy
 
-Individual services may have additional considerations when relying on NFS storage mounted to the host. These are documented in service readme files.
+Start with the proxy containers.
+Go to [00_proxy](./00_proxy/) and follow the readme instructions to launch the containers.
 
-#### Install Docker
+### Launch Portainer Monitoring
 
-Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) according to the latest Docker instructions.
+Suggested: Run a Portainer container on each host.
+
+- For use on the same host as the proxy: [Portainer](./portainer/)
+- For use on a different host than the proxy: [Portainer-remotehost](./portainer-remotehost)
+
+### Configure and Launch Other Apps and Services
+
+Follow startup instructions on each of the component readme pages linked in the [Components Overview above](#components-overview).
 
 ## Metadata
 

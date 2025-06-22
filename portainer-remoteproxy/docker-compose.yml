@@ -1,19 +1,19 @@
-#  PORTAINER - Proxy on Same Host
+#  PORTAINER - Proxy on Remote Host
 services:
   portainer:
     container_name: $CONTAINER_NAME
     image: portainer/portainer-ce
     command: -H unix:///var/run/docker.sock
     restart: unless-stopped # "no" always on-failure unless-stopped
-    # ports:
-    #   - $PORT:9443
-    networks:
-      - outpost
+    ports:
+      - $PORT:9443
+    # networks:
+      # - outpost
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - $CONFIG_PATH/:/data
 
-networks:
-  outpost:
-    name: outpost
-    external: true
+# networks:
+#   outpost:
+#     name: outpost
+#     external: true
