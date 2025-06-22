@@ -1,6 +1,4 @@
 #  PORTAINER
-version: "3"
-
 services:
   portainer:
     container_name: $CONTAINER_NAME
@@ -8,16 +6,14 @@ services:
     command: -H unix:///var/run/docker.sock
     restart: unless-stopped # "no" always on-failure unless-stopped
     # ports:
-    # - $PORT:9443
+    #   - $PORT:9443
     networks:
-      - default
-      - proxy
+      - outpost
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - $CONFIG_PATH/:/data
 
 networks:
-  default:
-  proxy:
-    name: $NETWORK
+  outpost:
+    name: outpost
     external: true
