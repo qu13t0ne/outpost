@@ -26,7 +26,7 @@ Build yourself an outpost.
    - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall
 - **Monitoring:**
    - [Portainer](./portainer) - Lightweight Docker management web UI (mostly I just use for status monitoring)
-      - Note, there's also a parallel [Portainer-remotehost](./portainer-remotehost) for use on a separate host from the proxy host
+      - Note, there's also a parallel [Portainer-remoteproxy](./portainer-remoteproxy/) for use when Caddy is running on a separate host from where you want to run Portainer.
 - **Apps and Services**
    - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app
    - [Dashy](./dashboard_dashy/) - Dashboard and start page
