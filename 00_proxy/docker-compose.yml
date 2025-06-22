@@ -17,8 +17,7 @@ services:
       - ${APPDATA}/caddy/config:/config
       - ./static:/static:ro
     networks:
-      - proxy
-      # - auth
+      - outpost
 
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -28,10 +27,9 @@ services:
       - TUNNEL_TOKEN
     restart: always
     networks:
-      - proxy
+      - outpost
 
 networks:
-  proxy:
-    name: proxy_net
-  # auth:
-  #   name: auth_net
+  outpost:
+    name: outpost
+    external: true
