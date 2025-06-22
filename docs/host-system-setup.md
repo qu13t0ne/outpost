@@ -35,3 +35,6 @@ Individual services may have additional considerations when relying on NFS stora
 
 Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) according to the latest Docker instructions.
 
+Consider then changing the default Docker storage location and adding automatic log rotation. See:
+- [Change Docker Storage Location](./change-docker-storage-location.md)
+- [daemon.json](./daemon.json)
