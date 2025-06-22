@@ -8,3 +8,4 @@ db/
 mongodb/data/
 dashy/user-data/
 *.custom
+*/APPDATA/
