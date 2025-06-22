@@ -3,6 +3,6 @@ services:
   cyberchef:
     container_name: $CONTAINER_NAME
     image: mpepping/cyberchef
-    restart: always
+    restart: unless-stopped
     ports:
       - $PORT:8000
