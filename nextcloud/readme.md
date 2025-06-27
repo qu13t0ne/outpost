@@ -11,6 +11,17 @@
 ### Initial
 
 - Copy `template-env` to `.env`
+- Update `.env` as required
+- Docker compose up
+- Follow the mastercontainer instructions and startup process (first time)
+
+### Caddyfile
+
+```
+cloud.domain.tld {
+  reverse_proxy <ip>:11000
+}
+```
 
 ## Recommended Nextcloud Apps
 
@@ -24,32 +35,29 @@ For better MFA:
 For additional security benefits:
 - Auditing/Logging
 - Brute Force Settings
-- Ransomware Protection
 - Suspicious Login
 
 ### Files and Storage
-- Collabora Online - Built-in CODE Server
 - External Storage Support
 - File Sharing
-- Configurable Share Links
 
-### Media
-- Photos
-- Preview Generator
-  - After installing and enabling the app, run `docker exec -u 33 -it nextcloud-app php occ preview:generate-all` to begin generating image previews. (**May take a while, depending on size of image directory!**)
-  - On the host system, schedule a cron job to run regularly and pre-generate previews. See example in the next section.
-  
-## Cron Jobs
-
-Set up the following cron jobs on the host system. Modify the schedules as needed.
-1) Regularly scan the file system, including external storage, for file updates and changes
-```
-0,15,30,45 * * * * docker exec -u 33 -it nextcloud-app php occ files:scan --all     # nextcloud rescan files and external storages
-```
-2) Pre-generate image previews
-```
-5,20,35,50 * * * * docker exec -u 33 -it nextcloud-app php occ preview:pre-generate # nextcloud preview generator app
-```
+<!-- ### Media -->
+<!-- - Photos -->
+<!-- - Preview Generator -->
+<!--   - After installing and enabling the app, run `docker exec -u 33 -it nextcloud-app php occ preview:generate-all` to begin generating image previews. (**May take a while, depending on size of image directory!**) -->
+<!--   - On the host system, schedule a cron job to run regularly and pre-generate previews. See example in the next section. -->
+<!---->
+<!-- ## Cron Jobs -->
+<!---->
+<!-- Set up the following cron jobs on the host system. Modify the schedules as needed. -->
+<!-- 1) Regularly scan the file system, including external storage, for file updates and changes -->
+<!-- ``` -->
+<!-- 0,15,30,45 * * * * docker exec -u 33 -it nextcloud-app php occ files:scan --all     # nextcloud rescan files and external storages -->
+<!-- ``` -->
+<!-- 2) Pre-generate image previews -->
+<!-- ``` -->
+<!-- 5,20,35,50 * * * * docker exec -u 33 -it nextcloud-app php occ preview:pre-generate # nextcloud preview generator app -->
+<!-- ``` -->
 
 ## Resources
 
