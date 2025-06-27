@@ -2,7 +2,7 @@
 
 # GENERAL
 PORT=8180
-HOST_IP=192.168.1.104
+HOST_IP=changeme
 
 # Allows to set the host directory for Nextcloud's datadir. ⚠️⚠️⚠️ Warning: do not set or adjust this value after the initial Nextcloud installation is done! See https://github.com/nextcloud/all-in-one#how-to-change-the-default-location-of-nextclouds-datadir
-DATADIR=./ncdata
+DATADIR=/srv/ncdata

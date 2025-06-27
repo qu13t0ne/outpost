@@ -23,19 +23,19 @@ Build yourself an outpost.
 
 - **Reverse Proxy, Internet Access, and IAM**
    - [Caddy Reverse Proxy](./00_proxy/) - Provides reverse proxy to all hosted services
-   - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall
+   - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall or messing with dynamic DNS on the host machine
 - **Monitoring:**
    - [Portainer](./portainer) - Lightweight Docker management web UI (mostly I just use for status monitoring)
       - Note, there's also a parallel [Portainer-remoteproxy](./portainer-remoteproxy/) for use when Caddy is running on a separate host from where you want to run Portainer.
 - **Apps and Services**
    - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app
    - [Dashy](./dashboard_dashy/) - Dashboard and start page
+   - [Nextcloud](./nextcloud) - Flexible open source file synchronization and sharing solution
 
 <!-- - **[Adminer](./adminer/)** - Database management web UI -->
 <!-- - **[MongoDB](./mongodb/)** - MongoDB non-relational database -->
-<!-- <!-- - **[PostgreSQL and pgAdmin](./postgres/)** --> -->
+<!-- - **[PostgreSQL and pgAdmin](./postgres/)** -->
 <!-- - **[Budibase](./budibase/)** - Low-code platform  -->
-<!-- - **[Nextcloud](./nextcloud)** - Flexible open source file synchronization and sharing solution -->
 <!-- - **[PhotoPrism](./photoprism)** - Photos management app -->
 
 ## Installation and Setup
