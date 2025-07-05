@@ -1,4 +1,4 @@
-# OUTPOST - A Self-Sufficient, Self-Hosted Cloud Setup
+# OUTPOST - A Self-Hosted Personal Cloud Setup
 ```
 ████▄   ▄     ▄▄▄▄▀ █ ▄▄  ████▄    ▄▄▄▄▄      ▄▄▄▄▀ 
 █   █    █ ▀▀▀ █    █   █ █   █   █     ▀▄ ▀▀▀ █    
