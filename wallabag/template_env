@@ -1,0 +1,10 @@
+# .env - Environment Variables
+
+PORT=8280
+DBUSER=wallabag
+DBPASS=wallapass
+FROM_EMAIL=email@domain.tld
+DOMAINNAME=https://wallabag.domain.tld
+SITE_TITLE='My Wallabag Instance'
+DATADIR='./APPDATA/'
+MYSQL_ROOT_PASSWD=wallaroot
