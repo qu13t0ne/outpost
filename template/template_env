@@ -3,5 +3,3 @@
 CONTAINER_NAME=TBD
 PORT=TBD
 CONFIG_PATH="./conf/"
-NETWORK=proxy_net
-TZ=America/New_York

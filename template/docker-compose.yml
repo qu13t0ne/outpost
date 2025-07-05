@@ -1,6 +1,4 @@
 #  (APP NAME)
-version: "3"
-
 services:
   <servicename>:
     container_name: $CONTAINER_NAME
@@ -8,14 +6,8 @@ services:
     restart: unless-stopped # "no" always on-failure unless-stopped
     # ports:
     # - $PORT:<TBD>
-    # networks: 
+    # networks:
     #   - default
     #   - proxy
     volumes:
       - $CONFIG_PATH/:<TBD>
-
-networks:
-  default:
-  proxy:
-    name: $NETWORK
-    external: true

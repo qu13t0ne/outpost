@@ -1,7 +1,7 @@
 # SERVICE_NAME
 
-**About:** TBD. \
-**Default Subdomain:** `example.domain.tld`
+- **About:** TBD.
+- **Default Port:** TBD
 
 ## Setup
 
@@ -13,8 +13,8 @@
 `Caddyfile`
 ```
 ########## EXAMPLE
-example.{$DOMAIN} {
-    reverse_proxy <container_name>:<port>
+example.domain.tld {
+    reverse_proxy <host_server>:<port>
 }
 ```
 
