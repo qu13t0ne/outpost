@@ -1,0 +1,31 @@
+# .env - Environment Variables
+
+CONTAINER_NAME='speedtest-tracker'
+PORT=8380
+PUID=1000
+PGID=1000
+CONFIG_PATH="./conf/"
+APP_NAME='My Speedtest Tracker'
+FQDN='https://networkspeed.domain.tld'
+DISPLAY_TIMEZONE='America/New_York'
+
+# Run the command below to generate a key, the key is required for encryption.
+# Copy this key including the base64: prefix and paste it as your APP_KEY value.
+# echo -n 'base64:'; openssl rand -base64 32;
+APP_KEY=
+
+# Speedtest Setup
+SPEEDTEST_SCHEDULE='*/10 * * * *'
+PRUNE_RESULTS_OLDER_THAN=45
+
+# SMTP SETUP
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.domain.tld
+MAIL_PORT=587
+MAIL_ENCRYPTION=tls
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM_ADDRESS=
+MAIL_FROM_NAME="Speedtest Tracker"
+MAIL_SCHEME=smtp
+

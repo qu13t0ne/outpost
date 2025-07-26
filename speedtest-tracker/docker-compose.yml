@@ -1,0 +1,20 @@
+#  Speedtest-Tracker (Speedtest-tracker.dev)
+services:
+  speedtest-tracker:
+    container_name: $CONTAINER_NAME
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    restart: unless-stopped # "no" always on-failure unless-stopped
+    ports:
+    - $PORT:80
+    env_file: .env
+    environment:
+    - DB_CONNECTION=sqlite
+    # only uncomment the below line temporarily for debug purposes
+    - APP_DEBUG=true
+    # - APP_KEY=$APP_KEY
+    # - APP_NAME=$APP_NAME
+    # - APP_URL=$FQDN
+    # - ASSET_URL=$FQDN
+    # - DISPLAY_TIMEZONE=$DISPLAY_TIMEZONE
+    volumes:
+    - $CONFIG_PATH/:/config

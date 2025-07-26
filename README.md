@@ -31,6 +31,7 @@ Build yourself an outpost.
    - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app
    - [Dashy](./dashboard_dashy/) - Dashboard and start page
    - [Nextcloud](./nextcloud) - Flexible open source file synchronization and sharing solution
+   - [Speedtest Tracker](./speedtest-tracker/) - Network speed monitoring app
    - [Wallabag](./wallabag/) - Read-it-later solution
 
 <!-- - **[Adminer](./adminer/)** - Database management web UI -->
