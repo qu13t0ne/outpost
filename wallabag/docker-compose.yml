@@ -16,6 +16,7 @@ services:
       - SYMFONY__ENV__FROM_EMAIL=$FROM_EMAIL
       - SYMFONY__ENV__DOMAIN_NAME=$DOMAINNAME
       - SYMFONY__ENV__SERVER_NAME=$SITE_TITLE
+      - PHP_MEMORY_LIMIT=1024M
     ports:
       - $PORT:80
     volumes:
@@ -30,14 +31,14 @@ services:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWD
     volumes:
       - $DATADIR/data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "/usr/local/bin/healthcheck.sh", "--innodb_initialized"]
-      interval: 20s
-      timeout: 3s
+    # healthcheck:
+    #   test: ["CMD", "/usr/local/bin/healthcheck.sh", "--innodb_initialized"]
+    #   interval: 20s
+    #   timeout: 3s
   redis:
     image: redis:alpine
-    restart: unless-stopped    
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 20s
-      timeout: 3s
+    restart: unless-stopped
+    # healthcheck:
+      # test: ["CMD", "redis-cli", "ping"]
+      # interval: 20s
+      # timeout: 3s
