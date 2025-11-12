@@ -9,3 +9,4 @@ mongodb/data/
 dashy/user-data/
 *.custom
 */APPDATA/
+immich/docker-compose.yml
