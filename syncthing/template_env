@@ -1,0 +1,20 @@
+# .env - Environment Variables
+
+CONTAINER_NAME=syncthing
+
+# Syncthing config directory on the host
+CONFIG_PATH="./conf"
+
+# User/group IDs that Syncthing runs as inside the container.
+# Run `id -u` and `id -g` on the host to get your values.
+# NOTE: To allow Syncthing to write into the Nextcloud data directory,
+# set PUID=33 (www-data) and PGID=33. See readme for details.
+PUID=1000
+PGID=1000
+
+# Timezone (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+TZ=America/New_York
+
+# Nextcloud data directory (required only if mounting Nextcloud folders)
+# Must match NEXTCLOUD_DATADIR in the nextcloud service .env
+# NEXTCLOUD_DATADIR=/path/to/nextcloud/data
