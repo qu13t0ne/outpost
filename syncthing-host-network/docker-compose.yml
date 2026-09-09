@@ -1,0 +1,22 @@
+services:
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: $CONTAINER_NAME
+    hostname: host-network-syncthing
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - $CONFIG_PATH:/config
+      # ---- Sync folders -----------------------------------------------
+      # Generic host directory example:
+      # - /path/on/host:/data/foldername
+      #
+      # Nextcloud AIO user data (see readme for PUID requirements):
+      # - $NEXTCLOUD_DATADIR/ncdata:/data/nextcloud
+      #
+      # External NAS mount (see readme; host mount must be active first):
+      # - /mnt/mynas:/data/mynas

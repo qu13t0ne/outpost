@@ -3,6 +3,11 @@
 - **About:** "Open Source Continuous File Synchronization" — syncs files between devices directly, with no cloud intermediary.
 - **Default Port:** 8384 (web UI), 22000 (sync), 21027 (local discovery)
 
+## Variants
+
+- This folder documents the default Docker-network Syncthing setup used in the main Outpost stack.
+- For a host-network alternative, use [../syncthing-host-network/](../syncthing-host-network/).
+
 ## Setup
 
 - Copy `template_env` to `.env` and edit as appropriate.
@@ -32,7 +37,7 @@ syncthing.domain.tld {
 }
 ```
 
-**Caddy on a separate host**: uncomment `- 8384:8384` in `docker-compose.yml`, then restrict port 8384 on the host firewall to the Caddy host's IP (do not expose it to the open internet). Replace `syncthing:8384` in the Caddyfile with `<syncthing-host-ip>:8384`. The `outpost` network block in the compose file is not needed and can be removed in this case.
+**Caddy on a separate host**: this section applies to the default Docker-network setup. Uncomment `- 8384:8384` in `docker-compose.yml`, then restrict port 8384 on the host firewall to the Caddy host's IP (do not expose it to the open internet). Replace `syncthing:8384` in the Caddyfile with `<syncthing-host-ip>:8384`. The `outpost` network block in the compose file is not needed and can be removed in this case.
 
 ```
 ########## SYNCTHING (remote host)

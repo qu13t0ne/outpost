@@ -1,0 +1,17 @@
+# .env - Syncthing Host-Network Variant
+
+CONTAINER_NAME=syncthing
+
+# Syncthing config directory on the host
+CONFIG_PATH="./conf"
+
+# Local filesystem path for the vault share
+VAULT_PATH="/srv/dev-disk-by-uuid-xxxx/Share/obsidian-vault"
+
+# User/group IDs that own the vault files on disk.
+# Match the existing local ownership so OMV and Syncthing can read/write consistently.
+PUID=1000
+PGID=1000
+
+# Timezone (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+TZ=America/New_York
