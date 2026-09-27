@@ -5,11 +5,10 @@
 
 ## Setup
 
-- Copy `template_env` to `.env` and edit as appropriate.
-  - Set `PUID` and `PGID` by running `id -u` and `id -g` on the host.
-  - **Exception:** if syncing into the Nextcloud data directory, see the [Nextcloud section](#nextcloud-aio-data-directory) below for required PUID/PGID values.
-  - Set `TZ` to your timezone.
 - Copy `template_docker-compose.override.yml` to `docker-compose.override.yml` and edit it for this server.
+  - No `.env` is used. `docker-compose.yml` holds defaults (container `syncthing`, PUID/PGID 1000, `America/New_York`, config at `./conf`); set only what differs in the override.
+  - Set `PUID` and `PGID` to the output of `id -u` and `id -g` for the sync folder owner.
+  - **Exception:** if syncing into the Nextcloud data directory, see the [Nextcloud section](#nextcloud-aio-data-directory) below for required PUID/PGID values.
   - Add sync folder mounts (see [Mounting Host Folders](#mounting-host-folders)).
   - Choose the network mode (see [Network Mode](#network-mode)).
   - This file is gitignored, so local paths stay out of the repo.
@@ -97,7 +96,7 @@ In host mode Syncthing listens on the host ports directly, so host firewall rule
 
 ## Mounting Host Folders
 
-Sync folders are added as bind mounts in `docker-compose.override.yml` and then registered as folders inside the Syncthing UI. The container path (right side of the `:`) is what you enter in the Syncthing UI when adding a folder. Mounts in the override file are appended to the base `$CONFIG_PATH:/config` mount.
+Sync folders are added as bind mounts in `docker-compose.override.yml` and then registered as folders inside the Syncthing UI. The container path (right side of the `:`) is what you enter in the Syncthing UI when adding a folder. Mounts in the override file are appended to the base `./conf:/config` mount; an override line targeting `/config` replaces it.
 
 ### Generic Host Directory
 
@@ -120,21 +119,16 @@ Then in the Syncthing UI, add the folder path `/data/foldername`.
 
 Nextcloud AIO runs its containers with UID/GID `33` (`www-data`). To allow Syncthing to write into the Nextcloud data directory, **Syncthing must also run as UID/GID 33**.
 
-In `.env`:
-
-```
-PUID=33
-PGID=33
-NEXTCLOUD_DATADIR=/path/to/nextcloud/data
-```
-
-Set `NEXTCLOUD_DATADIR` to match the value in the Nextcloud service's `.env`. Then in `docker-compose.override.yml`:
+In `docker-compose.override.yml`, using the `NEXTCLOUD_DATADIR` value from the Nextcloud service's `.env`:
 
 ```yaml
 services:
   syncthing:
+    environment:
+      - PUID=33
+      - PGID=33
     volumes:
-      - $NEXTCLOUD_DATADIR/ncdata:/data/nextcloud
+      - /path/to/nextcloud/data/ncdata:/data/nextcloud
 ```
 
 > The full path to a given user's files inside the container is:
@@ -204,12 +198,12 @@ Then in the Syncthing UI, add the folder path `/data/mynas` (or a subdirectory).
 
 ### Backup
 
-- Include this entire directory in backups, including the untracked `.env` and `docker-compose.override.yml`.
-- The `CONFIG_PATH` directory contains all Syncthing configuration, device certificates, and folder metadata.
+- Include this entire directory in backups, including the untracked `docker-compose.override.yml`.
+- The config directory (`./conf` unless overridden) contains all Syncthing configuration, device certificates, and folder metadata.
 
 ### Restore
 
-- Replace this entire directory and the `CONFIG_PATH` directory from backup.
+- Replace this entire directory and the config directory from backup.
 - Launch container.
 
 ## Resources

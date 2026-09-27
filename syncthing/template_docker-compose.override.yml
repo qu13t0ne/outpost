@@ -1,14 +1,24 @@
 # Per-server Syncthing settings. Copy to docker-compose.override.yml (gitignored) and edit.
 # Docker Compose merges this file into docker-compose.yml automatically.
+# Only set what differs from the base defaults.
 services:
   syncthing:
-    # ---- Sync folders (appended to the base volumes list) ---------------
+    # ---- Overrides (merged by variable name; omit to keep base default) ---
+    # environment:
+    #   - PUID=1000                # `id -u` of the sync folder owner; 33 for Nextcloud AIO (see readme)
+    #   - PGID=1000                # `id -g` of the sync folder owner; 33 for Nextcloud AIO
+    #   - TZ=America/New_York
+
+    # ---- Sync folders (merged by container path; /config replaces base) ---
     volumes:
+      # Config dir (base default is ./conf):
+      # - /path/to/syncthing/conf:/config
+      #
       # Generic host directory:
       - /path/on/host:/data/foldername
       #
       # Nextcloud AIO user data (see readme for PUID requirements):
-      # - $NEXTCLOUD_DATADIR/ncdata:/data/nextcloud
+      # - /path/to/nextcloud/data/ncdata:/data/nextcloud
       #
       # External NAS mount (see readme; host mount must be active first):
       # - /mnt/mynas:/data/mynas

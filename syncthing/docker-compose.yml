@@ -1,22 +1,22 @@
 # SYNCTHING
-# Per-server sync folders and network mode go in docker-compose.override.yml (gitignored).
-# Copy template_docker-compose.override.yml to start. See readme.
+# Defaults only. Per-server settings (IDs, TZ, sync folders, network mode) go in
+# docker-compose.override.yml (gitignored). Copy template_docker-compose.override.yml to start. See readme.
 services:
   syncthing:
     image: lscr.io/linuxserver/syncthing:latest
-    container_name: $CONTAINER_NAME
+    container_name: syncthing
     restart: unless-stopped
     environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
     ports:
       # Web UI port 8384 is not published; Caddy reaches it over the outpost network.
       - 22000:22000/tcp # sync traffic (TCP)
       - 22000:22000/udp # sync traffic (QUIC)
       - 21027:21027/udp # local device discovery
     volumes:
-      - $CONFIG_PATH:/config
+      - ./conf:/config
     networks:
       - outpost
 
