@@ -1,12 +1,7 @@
 # Syncthing
 
-- **About:** "Open Source Continuous File Synchronization" — syncs files between devices directly, with no cloud intermediary.
+- **About:** "Open Source Continuous File Synchronization" - syncs files between devices directly, with no cloud intermediary.
 - **Default Port:** 8384 (web UI), 22000 (sync), 21027 (local discovery)
-
-## Variants
-
-- This folder documents the default Docker-network Syncthing setup used in the main Outpost stack.
-- For a host-network alternative, use [../syncthing-host-network/](../syncthing-host-network/).
 
 ## Setup
 
@@ -14,14 +9,36 @@
   - Set `PUID` and `PGID` by running `id -u` and `id -g` on the host.
   - **Exception:** if syncing into the Nextcloud data directory, see the [Nextcloud section](#nextcloud-aio-data-directory) below for required PUID/PGID values.
   - Set `TZ` to your timezone.
-- Start the container.
+- Copy `template_docker-compose.override.yml` to `docker-compose.override.yml` and edit it for this server.
+  - Add sync folder mounts (see [Mounting Host Folders](#mounting-host-folders)).
+  - Choose the network mode (see [Network Mode](#network-mode)).
+  - This file is gitignored, so local paths stay out of the repo.
+- Start the container with `docker compose up -d`. Compose merges the override file automatically.
 - Open the Syncthing UI via the reverse proxy URL and complete initial configuration.
+
+## Network Mode
+
+| Mode              | Use when                                                        | Access control          |
+| ----------------- | --------------------------------------------------------------- | ----------------------- |
+| Bridge (default)  | Caddy runs on the same host, on the `outpost` Docker network    | Docker network + ports  |
+| Host              | Caddy runs on a different host, or host firewall should govern  | Host firewall           |
+
+Bridge mode needs no override changes. For host mode, uncomment the three host-network lines in
+`docker-compose.override.yml`:
+
+```yaml
+    network_mode: host
+    ports: !reset []
+    networks: !reset []
+```
+
+`!reset` requires Docker Compose 2.18 or later.
 
 ## Reverse Proxy
 
 Syncthing performs a CSRF host-header check and will reject requests where the `Host` header does not match its expected value. The `header_up` directive is **required** to pass that check when proxying through Caddy.
 
-**Caddy on the same host** (default): Caddy reaches Syncthing by container name over the shared `outpost` Docker network. Port 8384 does not need to be published.
+**Bridge mode**: Caddy reaches Syncthing by container name over the shared `outpost` Docker network. Port 8384 does not need to be published.
 
 `Caddyfile`
 
@@ -37,10 +54,10 @@ syncthing.domain.tld {
 }
 ```
 
-**Caddy on a separate host**: this section applies to the default Docker-network setup. Uncomment `- 8384:8384` in `docker-compose.yml`, then restrict port 8384 on the host firewall to the Caddy host's IP (do not expose it to the open internet). Replace `syncthing:8384` in the Caddyfile with `<syncthing-host-ip>:8384`. The `outpost` network block in the compose file is not needed and can be removed in this case.
+**Host mode**: point Caddy at the Syncthing host IP. Restrict TCP 8384 to the Caddy host IP on the host firewall.
 
 ```
-########## SYNCTHING (remote host)
+########## SYNCTHING (host mode)
 syncthing.domain.tld {
     import use_tls
     import errorHandling
@@ -51,18 +68,46 @@ syncthing.domain.tld {
 }
 ```
 
+## Host Mode Firewall
+
+In host mode Syncthing listens on the host ports directly, so host firewall rules are the access control layer.
+
+- TCP 8384 (GUI): allow only from the reverse-proxy host.
+- TCP 22000, UDP 22000, UDP 21027: scope per the reachability mode below.
+- Deny or drop all other sources for these ports.
+
+### Reachability Modes
+
+**1. LAN-only sync** (most restrictive)
+
+- Allow sync ports from your LAN/admin subnet only, for example `192.168.x.0/24`.
+- No router port forwarding needed. Devices off the physical network cannot sync until back on LAN or on a VPN.
+
+**2. Open sync across the internet**
+
+- Allow sync ports from `0.0.0.0/0`. Keep TCP 8384 restricted to the proxy host.
+- Router: forward external TCP 22000, UDP 22000, and UDP 21027 to the host's LAN IP.
+- Risk: anyone can reach and fingerprint the port as Syncthing. They cannot pair or pull data without your device ID (TLS plus device-ID pinning; unknown devices are rejected by default). This makes Syncthing the internet-facing service on the box, so keep the image updated.
+
+**3. VPN-based sync** (recommended follow-up)
+
+- Install a VPN mesh such as Tailscale on the host and remote devices.
+- Scope sync ports to LAN plus the VPN subnet, for example `100.64.0.0/10`, or specific VPN device IPs.
+- Remove the router port forward. Keep TCP 8384 restricted to the proxy host.
+
 ## Mounting Host Folders
 
-Sync folders are added as bind mounts in `docker-compose.yml` and then registered as folders inside the Syncthing UI. The container path (right side of the `:`) is what you enter in the Syncthing UI when adding a folder.
+Sync folders are added as bind mounts in `docker-compose.override.yml` and then registered as folders inside the Syncthing UI. The container path (right side of the `:`) is what you enter in the Syncthing UI when adding a folder. Mounts in the override file are appended to the base `$CONFIG_PATH:/config` mount.
 
 ### Generic Host Directory
 
-Add a bind mount in `docker-compose.yml` under `volumes:`:
+In `docker-compose.override.yml`:
 
 ```yaml
-volumes:
-  - $CONFIG_PATH:/config
-  - /path/on/host:/data/foldername
+services:
+  syncthing:
+    volumes:
+      - /path/on/host:/data/foldername
 ```
 
 Then in the Syncthing UI, add the folder path `/data/foldername`.
@@ -80,14 +125,16 @@ In `.env`:
 ```
 PUID=33
 PGID=33
+NEXTCLOUD_DATADIR=/path/to/nextcloud/data
 ```
 
-In `docker-compose.yml`, uncomment (or add) the Nextcloud volume line, setting `NEXTCLOUD_DATADIR` to match the value in the Nextcloud service's `.env`:
+Set `NEXTCLOUD_DATADIR` to match the value in the Nextcloud service's `.env`. Then in `docker-compose.override.yml`:
 
 ```yaml
-volumes:
-  - $CONFIG_PATH:/config
-  - $NEXTCLOUD_DATADIR/ncdata:/data/nextcloud
+services:
+  syncthing:
+    volumes:
+      - $NEXTCLOUD_DATADIR/ncdata:/data/nextcloud
 ```
 
 > The full path to a given user's files inside the container is:
@@ -99,11 +146,11 @@ In the Syncthing UI, add the folder at `/data/nextcloud/<username>/files/` (or a
 
 Running Syncthing at `PUID=33` means it runs as `www-data` inside the container. If you also want to sync host directories owned by a different user (e.g. UID 1000), Syncthing will not have write access to those directories.
 
-**Option A — Two Syncthing instances (recommended for mixed workloads)**
+**Option A - Two Syncthing instances (recommended for mixed workloads)**
 
-Add a second service in `docker-compose.yml` with a separate `CONFIG_PATH`, `PUID`/`PGID` matching the other directories' owner, and a different internal port mapping. Proxy each instance to its own subdomain.
+Add a second service in `docker-compose.override.yml` with a separate config path, `PUID`/`PGID` matching the other directories' owner, and different host port mappings. Proxy each instance to its own subdomain.
 
-**Option B — POSIX ACLs on the non-Nextcloud directories**
+**Option B - POSIX ACLs on the non-Nextcloud directories**
 
 Keep one instance at `PUID=33` and grant UID 33 write access to the other host directories without changing their ownership:
 
@@ -138,12 +185,13 @@ Adjust the interval as needed. Run `docker exec nextcloud-aio-nextcloud php occ 
 
 ### External NAS / Host Mount (e.g. `/mnt/mynas`)
 
-If the host has an external volume mounted at a path like `/mnt/mynas`, bind-mount it directly:
+If the host has an external volume mounted at a path like `/mnt/mynas`, bind-mount it in `docker-compose.override.yml`:
 
 ```yaml
-volumes:
-  - $CONFIG_PATH:/config
-  - /mnt/mynas:/data/mynas
+services:
+  syncthing:
+    volumes:
+      - /mnt/mynas:/data/mynas
 ```
 
 Then in the Syncthing UI, add the folder path `/data/mynas` (or a subdirectory).
@@ -156,7 +204,7 @@ Then in the Syncthing UI, add the folder path `/data/mynas` (or a subdirectory).
 
 ### Backup
 
-- Include this entire directory in backups.
+- Include this entire directory in backups, including the untracked `.env` and `docker-compose.override.yml`.
 - The `CONFIG_PATH` directory contains all Syncthing configuration, device certificates, and folder metadata.
 
 ### Restore
@@ -166,7 +214,7 @@ Then in the Syncthing UI, add the folder path `/data/mynas` (or a subdirectory).
 
 ## Resources
 
-- https://syncthing.net/
-- https://docs.syncthing.net/
-- https://hub.docker.com/r/linuxserver/syncthing
-- https://docs.linuxserver.io/images/docker-syncthing/
+- <https://syncthing.net/>
+- <https://docs.syncthing.net/>
+- <https://hub.docker.com/r/linuxserver/syncthing>
+- <https://docs.linuxserver.io/images/docker-syncthing/>

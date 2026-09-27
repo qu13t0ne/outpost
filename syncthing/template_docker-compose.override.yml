@@ -1,0 +1,20 @@
+# Per-server Syncthing settings. Copy to docker-compose.override.yml (gitignored) and edit.
+# Docker Compose merges this file into docker-compose.yml automatically.
+services:
+  syncthing:
+    # ---- Sync folders (appended to the base volumes list) ---------------
+    volumes:
+      # Generic host directory:
+      - /path/on/host:/data/foldername
+      #
+      # Nextcloud AIO user data (see readme for PUID requirements):
+      # - $NEXTCLOUD_DATADIR/ncdata:/data/nextcloud
+      #
+      # External NAS mount (see readme; host mount must be active first):
+      # - /mnt/mynas:/data/mynas
+
+    # ---- Host network mode (optional; see readme "Network Mode") --------
+    # Uncomment all three lines to use host networking instead of the outpost network.
+    # network_mode: host
+    # ports: !reset []
+    # networks: !reset []

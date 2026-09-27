@@ -1,4 +1,6 @@
 # SYNCTHING
+# Per-server sync folders and network mode go in docker-compose.override.yml (gitignored).
+# Copy template_docker-compose.override.yml to start. See readme.
 services:
   syncthing:
     image: lscr.io/linuxserver/syncthing:latest
@@ -9,25 +11,12 @@ services:
       - PGID=$PGID
       - TZ=$TZ
     ports:
-      # Web UI port 8384 is NOT published when Caddy runs on the same host
-      # (it reaches Syncthing via the shared Docker network by container name).
-      # If Caddy runs on a DIFFERENT host, uncomment the line below and
-      # restrict access with a host firewall to the Caddy host IP only.
-      # - 8384:8384
+      # Web UI port 8384 is not published; Caddy reaches it over the outpost network.
       - 22000:22000/tcp # sync traffic (TCP)
       - 22000:22000/udp # sync traffic (QUIC)
       - 21027:21027/udp # local device discovery
     volumes:
       - $CONFIG_PATH:/config
-      # ---- Sync folders -----------------------------------------------
-      # Generic host directory example:
-      # - /path/on/host:/data/foldername
-      #
-      # Nextcloud AIO user data (see readme for PUID requirements):
-      # - $NEXTCLOUD_DATADIR/ncdata:/data/nextcloud
-      #
-      # External NAS mount (see readme; host mount must be active first):
-      # - /mnt/mynas:/data/mynas
     networks:
       - outpost
 

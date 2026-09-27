@@ -1,4 +1,5 @@
 # OUTPOST - A Self-Hosted Personal Cloud Setup
+
 ```
 ████▄   ▄     ▄▄▄▄▀ █ ▄▄  ████▄    ▄▄▄▄▄      ▄▄▄▄▀ 
 █   █    █ ▀▀▀ █    █   █ █   █   █     ▀▄ ▀▀▀ █    
@@ -22,18 +23,18 @@ Build yourself an outpost.
 ## Components Overview
 
 - **Reverse Proxy, Internet Access, and IAM**
-   - [Caddy Reverse Proxy](./00_proxy/) - Provides reverse proxy to all hosted services
-   - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall or messing with dynamic DNS on the host machine
+  - [Caddy Reverse Proxy](./00_proxy/) - Provides reverse proxy to all hosted services
+  - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall or messing with dynamic DNS on the host machine
 - **Monitoring:**
-   - [Portainer](./portainer) - Lightweight Docker management web UI (mostly I just use for status monitoring)
-      - Note, there's also a parallel [Portainer-remoteproxy](./portainer-remoteproxy/) for use when Caddy is running on a separate host from where you want to run Portainer.
+  - [Portainer](./portainer) - Lightweight Docker management web UI (mostly I just use for status monitoring)
+    - Note, there's also a parallel [Portainer-remoteproxy](./portainer-remoteproxy/) for use when Caddy is running on a separate host from where you want to run Portainer.
 - **Apps and Services**
-   - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app
-   - [Dashy](./dashboard_dashy/) - Dashboard and start page
-   - [Nextcloud](./nextcloud) - Flexible open source file synchronization and sharing solution
-   - [Syncthing](./syncthing/) - File synchronization service for the default Docker-network setup; see [Syncthing host-network](./syncthing-host-network/) for the host-network variant
-   - [Speedtest Tracker](./speedtest-tracker/) - Network speed monitoring app
-   - [Wallabag](./wallabag/) - Read-it-later solution
+  - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app
+  - [Dashy](./dashboard_dashy/) - Dashboard and start page
+  - [Nextcloud](./nextcloud) - Flexible open source file synchronization and sharing solution
+  - [Syncthing](./syncthing/) - File synchronization service (Docker-network or host-network mode)
+  - [Speedtest Tracker](./speedtest-tracker/) - Network speed monitoring app
+  - [Wallabag](./wallabag/) - Read-it-later solution
 
 <!-- - **[Adminer](./adminer/)** - Database management web UI -->
 <!-- - **[MongoDB](./mongodb/)** - MongoDB non-relational database -->
@@ -91,12 +92,13 @@ Follow startup instructions on each of the component readme pages linked in the 
 
 ## Metadata
 
-**Created By Mike Owens** | [GitHub](https://github.com/qu13t0ne) ~ [GitLab](https://gitlab.com/qu13t0ne) ~ [Bluesky](https://bsky.app/profile/qu13t0ne.bsky.social)~ [Mastodon](https://infosec.exchange/@qu13t0ne) 
+**Created By Mike Owens** | [GitHub](https://github.com/qu13t0ne) ~ [GitLab](https://gitlab.com/qu13t0ne) ~ [Bluesky](https://bsky.app/profile/qu13t0ne.bsky.social)~ [Mastodon](https://infosec.exchange/@qu13t0ne)
 
 **License: [MIT](LICENSE)** *(Covers the config & setup. Apps & services have their own licenses. Hack responsibly.)*
 
 ## Resources and Acknowledgments
+
 This project is built on plenty of help from other online resources and repos. I try to acknowledge them wherever possible, but I'm human so I've probably forgotten some.
 
-- https://github.com/DoTheEvo/selfhosted-apps-docker
-- https://github.com/docker/awesome-compose
+- <https://github.com/DoTheEvo/selfhosted-apps-docker>
+- <https://github.com/docker/awesome-compose>

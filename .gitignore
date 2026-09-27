@@ -10,3 +10,4 @@ dashy/user-data/
 *.custom
 */APPDATA/
 immich/docker-compose.yml
+docker-compose.override.yml
