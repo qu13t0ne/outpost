@@ -11,16 +11,19 @@ services:
       - PGID=1000
       - TZ=America/New_York
     ports:
-      # Web UI port 8384 is not published; Caddy reaches it over the outpost network.
-      - 22000:22000/tcp # sync traffic (TCP)
-      - 22000:22000/udp # sync traffic (QUIC)
-      - 21027:21027/udp # local device discovery
+      # No Docker network dependency: this container runs on server2, and the `outpost`
+      # network only exists on server1, so it cannot be joined from here.
+      #
+      # Sync traffic is a tailnet surface. These ports bind to the tailnet address, so they
+      # are reachable from tailnet members and from nowhere else; server2's nftables also
+      # restricts them to the tailnet range.
+      - "${TAILSCALE_ADDR}:22000:22000/tcp" # sync traffic (TCP)
+      - "${TAILSCALE_ADDR}:22000:22000/udp" # sync traffic (QUIC)
+      - "${TAILSCALE_ADDR}:21027:21027/udp" # local device discovery
+      # The web UI is a browser surface, so it follows the same rule as every other UI:
+      # it is served through Caddy, never reached directly. It binds BIND_ADDR so Caddy on
+      # server1 can proxy it, and server2's nftables restricts that port to server1 only.
+      # Never publish it on 0.0.0.0.
+      - "${BIND_ADDR}:8384:8384"
     volumes:
       - ./conf:/config
-    networks:
-      - outpost
-
-networks:
-  outpost:
-    name: outpost
-    external: true

@@ -1,0 +1,120 @@
+#!/usr/sbin/nft -f
+#
+# nftables-server1.nft - host firewall for server1 (cloudflared + Caddy + Authentik).
+#
+# TEMPLATE. Every address below is a placeholder and every rule below is a policy decision
+# that must be re-read before it is loaded. Replace the defines with real values, validate
+# with:
+#   sudo nft -c -f /etc/nftables.d/server1.nft
+# then load it and make it persistent with the host's nftables service, not with a hand-run
+# command.
+#
+# Why this file exists: it is the only east-west enforcement point that is not pfSense (see
+# docs/east-west.md). Drop logging is the only east-west telemetry available: no device
+# between the two VMs can export flow data, so a dropped packet from here is the signal.
+#
+# Assumptions, all of which must be checked on the real host:
+#   - server1 has a static IPv4 address on the user LAN and does not use IPv6 SLAAC or
+#     DHCPv6. This ruleset is IPv4-only; if the host needs IPv6, add the matching rules
+#     before loading, or the host loses IPv6 connectivity.
+#   - the user LAN subnet is the only network that may reach 443 and SSH.
+#
+# This file does NOT start with `flush ruleset`. That command would also delete the tables
+# Docker installs through the iptables-nft backend, which breaks container networking until
+# Docker restarts. Only this ruleset's own table is created and replaced.
+
+define USER_LAN = 203.0.113.0/24   # placeholder: the user LAN subnet, RFC 5737 example
+define SERVER1_ADDR = 192.0.2.10   # placeholder: this host's address on the user LAN
+
+# Replace this ruleset's table only, so a reload is idempotent and nothing else is touched.
+table inet outpost_guest
+delete table inet outpost_guest
+table inet outpost_guest {
+
+	# ===================================================================================
+	# Published (Docker) ports
+	#
+	# Docker publishes a container port by writing a DNAT rule, and the packet is then
+	# forwarded to the container. It never crosses the input chain, so input rules do not
+	# filter published container ports. This is why the input chain alone is not enough.
+	#
+	# This chain runs in the raw prerouting hook, which is earlier than the nat hook where
+	# Docker's DNAT lives. That ordering is the whole point: `dport` here is still the port
+	# the client wrote, before it is rewritten to the container's port.
+	#
+	# Matching on `daddr = SERVER1_ADDR` rather than on the ingress interface is deliberate.
+	# Container egress also traverses prerouting, so an interface match would need extra
+	# care; a destination match cannot interfere with it, because container traffic to an
+	# external address has a different destination.
+	#
+	# Cloudflare tunnel traffic does not appear here at all: cloudflared reaches the caddy
+	# container directly over the docker bridge, which is switched at layer 2 and never
+	# enters this host's IP stack.
+	# ===================================================================================
+	chain prerouting {
+		type filter hook prerouting priority raw; policy accept;
+
+		# The single ingress: the user LAN may reach Caddy on 443.
+		ip daddr $SERVER1_ADDR tcp dport 443 ip saddr $USER_LAN accept
+
+		# Anything else aimed at 443 on this host is dropped and logged. With no cloudflared
+		# in the path this is the only way to reach Caddy, so a drop here means either a
+		# misconfigured client or someone probing from a network that is not the user LAN.
+		ip daddr $SERVER1_ADDR tcp dport 443 \
+			limit rate 10/minute burst 20 packets log prefix "nft-drop " level info
+		ip daddr $SERVER1_ADDR tcp dport 443 counter drop
+	}
+
+	# ===================================================================================
+	# Host-local listeners (sshd, and anything bound to the host address directly).
+	# Published container ports are handled by the prerouting chain above, not here.
+	# ===================================================================================
+	chain input {
+		type filter hook input priority filter; policy drop;
+
+		# Established and related traffic is already subject to the rules below, so it is
+		# accepted here. Invalid packets are dropped rather than logged: they are noise.
+		ct state established,related accept
+		ct state invalid drop
+
+		# Loopback. This is what keeps Authentik on 127.0.0.1:9000/9443 reachable by Caddy
+		# and by nothing else.
+		iif "lo" accept
+
+		# SSH from the user LAN. Deliberately not from anywhere else. This is scheduled to
+		# be narrowed to the tailnet later; until then it stays scoped to $USER_LAN.
+		ip saddr $USER_LAN tcp dport 22 accept
+
+		# 443 is accepted here as well, so the host keeps working if Caddy is ever moved out
+		# of Docker. Under Docker the prerouting chain above is what actually applies.
+		ip saddr $USER_LAN tcp dport 443 accept
+
+		# Authentik listens on 127.0.0.1:9000 and 127.0.0.1:9443 only. Loopback binds are
+		# not reachable across the inter-server path, so there is deliberately no rule for
+		# them here. A drop toward 9000 or 9443 from server2 is a finding, not a mistake.
+		#
+		# Nothing else is accepted. Prometheus scrape ports, admin ports and database ports
+		# have no rule, which is intentional.
+
+		# Rate-limited drop logging: a log flood is itself a denial of service, so the log
+		# statement is capped and the drop is unconditional. The `nft-drop` prefix is what
+		# the daily digest greps for, so do not change it.
+		limit rate 10/minute burst 20 packets log prefix "nft-drop " level info
+		counter drop
+	}
+}
+
+# ---------------------------------------------------------------------------------------
+# Docker and this ruleset
+#
+# 1. Docker writes its DNAT rules and its own DOCKER, DOCKER-USER and DOCKER-ISOLATION
+#    chains. This file must never flush, replace or filter those chains. Getting clever
+#    here produces a host whose containers lose egress at the next Docker restart, with no
+#    useful error. The prerouting chain above is a separate table that observes packets
+#    before Docker rewrites them; it does not touch Docker's state.
+# 2. The supported alternative is the DOCKER-USER chain, managed through the iptables-nft
+#    frontend. It is not used here because it depends on iptables compatibility and has to
+#    be re-applied after Docker restarts, whereas a prerouting filter is declarative and
+#    reloads cleanly with the rest of this file.
+# 3. Docker-published ports on this host should stay at zero except Caddy's 443.
+# ---------------------------------------------------------------------------------------

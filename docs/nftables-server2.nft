@@ -1,0 +1,134 @@
+#!/usr/sbin/nft -f
+#
+# nftables-server2.nft - host firewall for server2 (all application containers).
+#
+# TEMPLATE. Every address below is a placeholder and every rule below is a policy decision
+# that must be re-read before it is loaded. Replace the defines with real values, validate
+# with:
+#   sudo nft -c -f /etc/nftables.d/server2.nft
+# then load it and make it persistent with the host's nftables service, not with a hand-run
+# command.
+#
+# Why this file exists: it is the only east-west enforcement point that is not pfSense (see
+# docs/east-west.md). Drop logging is the only east-west telemetry available: no device
+# between the two VMs can export flow data, so a dropped packet here is the signal.
+#
+# Assumptions, all of which must be checked on the real host:
+#   - server2 has a static IPv4 address on the user LAN and does not use IPv6 SLAAC or
+#     DHCPv6. This ruleset is IPv4-only; if the host needs IPv6, add the matching rules
+#     before loading, or the host loses IPv6 connectivity.
+#   - server1 is the only host that may reach an application port, and the tailnet is the
+#     only network that may reach a Syncthing sync port.
+#
+# This file does NOT start with `flush ruleset`. That command would also delete the tables
+# Docker installs through the iptables-nft backend, which breaks container networking until
+# Docker restarts. Only this ruleset's own table is created and replaced.
+
+# The reverse proxy host. Placeholder, RFC 5737 example address.
+define SERVER1_ADDR = 192.0.2.10
+
+# This host's address on the LAN. Every application port binds to this address (BIND_ADDR in
+# each service's env file). Placeholder, RFC 5737 example address.
+define BIND_ADDR = 192.0.2.20
+
+# The user LAN subnet. Placeholder, RFC 5737 example range.
+define USER_LAN = 203.0.113.0/24
+
+# The tailnet range. 100.64.0.0/10 is the CGNAT block Tailscale hands out.
+define TAILNET = 100.64.0.0/10
+
+# Application ports published on this host, each bound to BIND_ADDR and reachable from the
+# proxy host only:
+#   8180 Nextcloud, 8280 Wallabag, 8000 CyberChef, 8080 Dashy, 8380 Speedtest,
+#   8384 Syncthing web UI
+# Immich is absent: its compose file is gitignored and not in this repo, so add its
+# published port here when it is deployed. Syncthing's sync ports are absent on purpose:
+# they bind to TAILSCALE_ADDR, not BIND_ADDR, and are handled in the input chain.
+define APP_PORTS = { 8180, 8280, 8000, 8080, 8380, 8384 }
+
+# Replace this ruleset's table only, so a reload is idempotent and nothing else is touched.
+table inet outpost_guest
+delete table inet outpost_guest
+table inet outpost_guest {
+
+	# ===================================================================================
+	# Published (Docker) ports - this is the east-west control that matters
+	#
+	# Docker publishes a container port by writing a DNAT rule, and the packet is then
+	# forwarded to the container. It never crosses the input chain, so input rules do not
+	# filter published container ports and cannot express "server1 only".
+	#
+	# This chain runs in the raw prerouting hook, earlier than the nat hook where Docker's
+	# DNAT lives, so `dport` is still the published port before the rewrite. That ordering
+	# is what makes the rule below both correct and independent of Docker's chain state.
+	#
+	# Matching on `daddr = BIND_ADDR` rather than on an interface means the rule applies
+	# regardless of which interface the packet arrived on, and cannot interfere with
+	# container egress (which has a different destination).
+	# ===================================================================================
+	chain prerouting {
+		type filter hook prerouting priority raw; policy accept;
+
+		# Only the reverse proxy may reach an application port, on any interface.
+		ip daddr $BIND_ADDR tcp dport $APP_PORTS ip saddr $SERVER1_ADDR accept
+
+		# Anything else aimed at an application port is dropped and logged. This is the
+		# signal for both a misconfigured client and an attempt to bypass Caddy: reaching an
+		# app port directly from the user LAN or the tailnet lands here.
+		ip daddr $BIND_ADDR tcp dport $APP_PORTS \
+			limit rate 10/minute burst 20 packets log prefix "nft-drop " level info
+		ip daddr $BIND_ADDR tcp dport $APP_PORTS counter drop
+	}
+
+	# ===================================================================================
+	# Host-local listeners and the tailnet-bound sync ports.
+	# Published container ports are handled by the prerouting chain above, not here.
+	# ===================================================================================
+	chain input {
+		type filter hook input priority filter; policy drop;
+
+		# Established and related traffic is already subject to the rules below, so it is
+		# accepted here. Invalid packets are dropped rather than logged: they are noise.
+		ct state established,related accept
+		ct state invalid drop
+
+		# Loopback only.
+		iif "lo" accept
+
+		# Syncthing sync ports, from the tailnet and from nowhere else. Not from the user
+		# LAN, and not from server1: sync traffic is a tailnet surface. These are UDP/TCP
+		# listeners bound to TAILSCALE_ADDR, so they do not pass through Docker's DNAT and
+		# are filtered here rather than in prerouting.
+		ip saddr $TAILNET tcp dport 22000 accept
+		ip saddr $TAILNET udp dport { 22000, 21027 } accept
+
+		# SSH from the proxy host or from the user LAN. Never from the public side.
+		ip saddr { $SERVER1_ADDR, $USER_LAN } tcp dport 22 accept
+
+		# Nothing else is accepted. A drop from server2 to an unexpected port on server1,
+		# or from the LAN to a port that is not in $APP_PORTS, is an alert rather than noise.
+
+		# Rate-limited drop logging: a log flood is itself a denial of service, so the log
+		# statement is capped and the drop is unconditional. The `nft-drop` prefix is what
+		# the daily digest greps for, so do not change it.
+		limit rate 10/minute burst 20 packets log prefix "nft-drop " level info
+		counter drop
+	}
+}
+
+# ---------------------------------------------------------------------------------------
+# Docker and this ruleset
+#
+# 1. Docker writes its DNAT rules and its own DOCKER, DOCKER-USER and DOCKER-ISOLATION
+#    chains. This file must never flush, replace or filter those chains. Getting clever
+#    here produces a host whose containers lose egress at the next Docker restart, with no
+#    useful error. The prerouting chain above is a separate table that observes packets
+#    before Docker rewrites them; it does not touch Docker's state.
+# 2. The supported alternative is the DOCKER-USER chain, managed through the iptables-nft
+#    frontend. It is not used here because it depends on iptables compatibility and has to
+#    be re-applied after Docker restarts, whereas a prerouting filter is declarative and
+#    reloads cleanly with the rest of this file.
+# 3. Verify the ruleset after loading, from a host that is not server1:
+#      curl -sS -o /dev/null -w '%{http_code}\n' http://<BIND_ADDR>:8180/   # expect a hang
+#      sudo journalctl -k | grep nft-drop                                    # expect a hit
+# ---------------------------------------------------------------------------------------

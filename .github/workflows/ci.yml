@@ -1,0 +1,79 @@
+name: CI
+
+# Validate every compose file against its env template and scan for secrets.
+# No repository secrets or credentials are required.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    name: Compose config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Validate every compose file against its env template
+        run: |
+          set -uo pipefail
+          fail=0
+          # The temp tree mirrors the repository layout, so relative references such as
+          # `extends: {file: ../compose.common.yml}` still resolve.
+          while IFS= read -r compose; do
+            dir=$(dirname "$compose")
+            dir=${dir#./}
+            work=$(mktemp -d)
+            mkdir -p "$work/root/$dir"
+            if [ -f compose.common.yml ]; then
+              cp compose.common.yml "$work/root/"
+            fi
+            cp "$dir/docker-compose.yml" "$work/root/$dir/"
+            if [ -f "$dir/docker-compose.override.yml" ]; then
+              cp "$dir/docker-compose.override.yml" "$work/root/$dir/"
+            fi
+            envlabel="none"
+            if [ -f "$dir/.env" ]; then
+              cp "$dir/.env" "$work/root/$dir/.env"
+              envlabel=".env"
+            else
+              for candidate in .env.example template_env template-env; do
+                if [ -f "$dir/$candidate" ]; then
+                  cp "$dir/$candidate" "$work/root/$dir/.env"
+                  envlabel="$candidate"
+                  break
+                fi
+              done
+            fi
+            echo "== $dir (env: $envlabel)"
+            if ! ( cd "$work/root/$dir" && docker compose config -q ); then
+              echo "FAIL $dir"
+              fail=1
+            fi
+            rm -rf "$work"
+          done < <(find . -name docker-compose.yml -not -path './.git/*' | sort)
+          exit "$fail"
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          curl -sSfL "${base}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz gitleaks
+
+      # Working tree only. Scanning full history is a follow-up task: it needs a
+      # separate run with fetch-depth 0 and a decision on pre-existing findings.
+      - name: Scan the working tree for secrets
+        run: ./gitleaks detect --no-git --redact --verbose

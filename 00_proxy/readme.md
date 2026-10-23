@@ -17,15 +17,17 @@ The docker-compose file includes the following linked containers:
 - Caddy container, which will serve as the reverse proxy for all internal sites and services and will manage TLS certificate generation and renewal
 - Tunnel container running Cloudflared, which tunnels Internet traffic to the caddy container for further proxying to the appropriate target
 
-Caddy itself is set up to receive and proxy traffic from both the Tunnel container and from 443 on the localhost, allowing direct access to services from the local network without having to hairpin traffic through the Internet/Cloudflare.
-This also allows some URLs to be designated *local_only*, which (with the requisite Caddyfile configuration) permits traffic from the local network but blocks anything coming from Cloudflare and/or non-approved IP addresses.
+Caddy itself is set up to receive and proxy traffic from both the Tunnel container and from 443 on the host LAN address, allowing direct access to services from the local network without having to hairpin traffic through the Internet/Cloudflare.
+Reachability decides the tier, not a check inside a site block: a hostname that the tunnel does not
+route is reachable only from the tailnet or the LAN, and a tunnel-exposed hostname is gated by a
+Cloudflare Access policy on the tunnel. See [the exposure model](../docs/exposure-model.md).
 
 ## Setup
 
 ### Summary
 
-- Copy `template-Caddyfile` to `Caddyfile`
-- Copy `template-env` to `.env`
+- Copy `Caddyfile.example` to `Caddyfile`
+- Copy `.env.example` to `.env`
 - Get Cloudflare API token
 - Edit `.env`
 - Edit `Caddyfile` to add config for desired sites and services
@@ -46,7 +48,7 @@ Copy or leave this page open, you'll need it in the next step.
 
 ### Configure .env file
 
-- Create a `.env` file from the included [template_env](./template_env).
+- Create a `.env` file from the included [.env.example](./.env.example).
 - Edit the contents as appropriate and indicated in the file.
 - Make the following changes to the template:
   - Add email for cert generation & renewal notifications
@@ -56,13 +58,14 @@ Copy or leave this page open, you'll need it in the next step.
 
 ### Create Caddyfile
 
-- Copy `template_Caddyfile` to `Caddyfile`
+- Copy `Caddyfile.example` to `Caddyfile`
 
 ### Edit Caddyfile
 
 For initial testing, make sure the Caddyfile is as follows:
-- Make sure the `debug` line is uncommented
-- Make sure the line for the Let's Encrypt staging URL is uncommented
+- Leave the `debug` line commented. It is for temporary troubleshooting only and logs headers
+  and bodies for every site.
+- Uncomment the Let's Encrypt staging URL while testing, then comment it again for production.
 
 ### Starting & Managing Containers
 

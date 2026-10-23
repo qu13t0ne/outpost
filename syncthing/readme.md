@@ -6,7 +6,10 @@
 ## Setup
 
 - Copy `template_docker-compose.override.yml` to `docker-compose.override.yml` and edit it for this server.
-  - No `.env` is used. `docker-compose.yml` holds defaults (container `syncthing`, PUID/PGID 1000, `America/New_York`, config at `./conf`); set only what differs in the override.
+  - Copy `.env.example` to `.env` and set `TAILSCALE_ADDR` to this host's tailnet address. The sync
+    ports bind to it, so sync traffic never touches the user LAN.
+  - `docker-compose.yml` holds defaults (container `syncthing`, PUID/PGID 1000, `America/New_York`,
+    config at `./conf`); set only what differs in the override.
   - Set `PUID` and `PGID` to the output of `id -u` and `id -g` for the sync folder owner.
   - **Exception:** if syncing into the Nextcloud data directory, see the [Nextcloud section](#nextcloud-aio-data-directory) below for required PUID/PGID values.
   - Add sync folder mounts (see [Mounting Host Folders](#mounting-host-folders)).
@@ -17,18 +20,20 @@
 
 ## Network Mode
 
-| Mode              | Use when                                                        | Access control          |
-| ----------------- | --------------------------------------------------------------- | ----------------------- |
-| Bridge (default)  | Caddy runs on the same host, on the `outpost` Docker network    | Docker network + ports  |
-| Host              | Caddy runs on a different host, or host firewall should govern  | Host firewall           |
+The base file joins no Docker network. The `outpost` network exists only on the proxy host, so a
+container on the app host cannot join it; reachability comes from the published ports below.
 
-Bridge mode needs no override changes. For host mode, uncomment the three host-network lines in
+| Mode             | Use when                                                  | Access control             |
+| ---------------- | --------------------------------------------------------- | -------------------------- |
+| Bridge (default) | Always available; sync ports bound to `${TAILSCALE_ADDR}` | Tailnet plus host firewall |
+| Host             | Host firewall or the host's own listeners should govern   | Host firewall              |
+
+Bridge mode needs no override changes. For host mode, uncomment the two host-network lines in
 `docker-compose.override.yml`:
 
 ```yaml
     network_mode: host
     ports: !reset []
-    networks: !reset []
 ```
 
 `!reset` requires Docker Compose 2.18 or later.
@@ -37,35 +42,26 @@ Bridge mode needs no override changes. For host mode, uncomment the three host-n
 
 Syncthing performs a CSRF host-header check and will reject requests where the `Host` header does not match its expected value. The `header_up` directive is **required** to pass that check when proxying through Caddy.
 
-**Bridge mode**: Caddy reaches Syncthing by container name over the shared `outpost` Docker network. Port 8384 does not need to be published.
+**Default (bridge) mode**: the web UI is published by the base file on `${BIND_ADDR}:8384`, so Caddy
+on the other host can proxy it. Nothing further is required. Never rebind it to `0.0.0.0`: the UI is
+a VPN-tier surface in [the exposure model](../docs/exposure-model.md), and server2's nftables accepts
+that port from the proxy host only.
 
 `Caddyfile`
 
 ```
 ########## SYNCTHING
-syncthing.domain.tld {
+syncthing.{$DOMAIN} {
     import use_tls
     import errorHandling
 
-    reverse_proxy syncthing:8384 {
+    reverse_proxy <app-host-lan-address>:8384 {
         header_up Host {upstream_hostport}
     }
 }
 ```
 
-**Host mode**: point Caddy at the Syncthing host IP. Restrict TCP 8384 to the Caddy host IP on the host firewall.
-
-```
-########## SYNCTHING (host mode)
-syncthing.domain.tld {
-    import use_tls
-    import errorHandling
-
-    reverse_proxy <syncthing-host-ip>:8384 {
-        header_up Host {upstream_hostport}
-    }
-}
-```
+The same block works for host mode: only the upstream changes.
 
 ## Host Mode Firewall
 

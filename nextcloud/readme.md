@@ -10,7 +10,7 @@
 
 ### Initial
 
-- Copy `template-env` to `.env`
+- Copy `.env.example` to `.env`
 - Update `.env` as required
 - Docker compose up
 - Follow the mastercontainer instructions and startup process (first time)

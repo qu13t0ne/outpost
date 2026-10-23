@@ -1,11 +1,19 @@
 #  (APP NAME)
+#
+# Reference implementation of the hardened defaults in ../compose.common.yml.
+# `extends:` matches by reference, so the service keeps its own name. Copy this file into a
+# real service directory and leave the extends block as it is; only `template_` prefixed
+# names and placeholder values need replacing.
 services:
   <servicename>:
+    extends:
+      file: ../compose.common.yml
+      service: _defaults
     container_name: $CONTAINER_NAME
     image: <TBD>
     restart: unless-stopped # "no" always on-failure unless-stopped
     # ports:
-    # - $PORT:<TBD>
+    # - "${BIND_ADDR}:${PORT}:<TBD>"
     # networks:
     #   - default
     #   - proxy

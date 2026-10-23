@@ -5,12 +5,13 @@ services:
     image: lscr.io/linuxserver/speedtest-tracker:latest
     restart: unless-stopped # "no" always on-failure unless-stopped
     ports:
-    - $PORT:80
+    # Bound to the host LAN address so only Caddy can reach it. Never 0.0.0.0.
+    - "${BIND_ADDR}:${PORT}:80"
     env_file: .env
     environment:
     - DB_CONNECTION=sqlite
-    # only uncomment the below line temporarily for debug purposes
-    - APP_DEBUG=true
+    # true is for temporary debugging only: it exposes stack traces and config in the UI.
+    - APP_DEBUG=false
     # - APP_KEY=$APP_KEY
     # - APP_NAME=$APP_NAME
     # - APP_URL=$FQDN

@@ -5,7 +5,7 @@
 
 ## Setup
 
-- Create `.env` from `template-env`
+- Create `.env` from `.env.example`
     - Validate UID and GID by running `id -u` and `id -g`
 - Run the container
 

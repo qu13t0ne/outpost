@@ -1,4 +1,0 @@
-# .env - Environment Variables
-
-CONTAINER_NAME=cyberchef
-PORT=8000

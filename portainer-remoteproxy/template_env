@@ -1,5 +1,0 @@
-# .env - Environment Variables
-
-CONTAINER_NAME=portainer
-PORT=9443
-CONFIG_PATH=./conf/

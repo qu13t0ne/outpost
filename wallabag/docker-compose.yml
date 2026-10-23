@@ -18,7 +18,8 @@ services:
       - SYMFONY__ENV__SERVER_NAME=$SITE_TITLE
       - PHP_MEMORY_LIMIT=1024M
     ports:
-      - $PORT:80
+      # Bound to the host LAN address so only Caddy can reach it. Never 0.0.0.0.
+      - "${BIND_ADDR}:${PORT}:80"
     volumes:
       - $DATADIR/images:/var/www/wallabag/web/assets/images
     depends_on:

@@ -5,7 +5,7 @@
 
 ## Setup
 
-- Copy `template_env` to `.env`
+- Copy `.env.example` to `.env`
 - Modify `.env` as needed
 - Run container
 

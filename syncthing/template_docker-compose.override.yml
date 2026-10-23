@@ -24,7 +24,14 @@ services:
       # - /mnt/mynas:/data/mynas
 
     # ---- Host network mode (optional; see readme "Network Mode") --------
-    # Uncomment all three lines to use host networking instead of the outpost network.
+    # The base file publishes the sync ports on ${TAILSCALE_ADDR} and the web UI on
+    # ${BIND_ADDR}, and joins no Docker network. Uncomment the two lines below to let the
+    # host stack govern reachability instead: Syncthing then listens on the host directly
+    # and publishes nothing.
     # network_mode: host
     # ports: !reset []
-    # networks: !reset []
+
+    # ---- Reverse proxy ------------------------------------------------
+    # The web UI (8384) is published by the base file on ${BIND_ADDR}, which is what Caddy on
+    # server1 proxies. If the host stack owns reachability instead (host mode above), the
+    # host firewall must allow TCP 8384 from the proxy host and nothing else.

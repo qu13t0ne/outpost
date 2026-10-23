@@ -5,7 +5,7 @@
 
 ## Setup
 
-- Copy `template_env` to `.env` and edit as appropriate.
+- Copy `.env.example` to `.env` and edit as appropriate.
 - Start container.
 
 ## Reverse Proxy

@@ -1,0 +1,76 @@
+# compose.common.yml - hardened container defaults, kept in one place.
+#
+# Adopted with `extends:`, which matches by reference rather than by name, so a service
+# keeps its own local name:
+#
+#   services:
+#     wallabag:
+#       extends:
+#         file: ../compose.common.yml
+#         service: _defaults
+#
+# `extends` is available in any Compose v2. The `_defaults` key below is also copied into
+# services by hand when a directory prefers not to reference this file at all; the values
+# are what matter, not the mechanism.
+#
+# `include:` (Compose >= 2.20) is not used, because it merges by resource name: an included
+# service would have to be named `_defaults` in the including file, which is useless. Same
+# reason it is not wired into template/docker-compose.yml.
+#
+# If a service must deviate from a default below, set the key in that service's own compose
+# file and confirm the merged result with `docker compose config` before deploying. Do not
+# assume which side wins a conflict; check it.
+
+# Log rotation. Without this, json-file logs grow until the disk fills, which is a
+# denial-of-service on a host that has no log shipper.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  _defaults:
+    # Stop a setuid or file-capability binary inside the container from gaining privileges.
+    # This is the single highest-value line in the file: it blocks most container escapes
+    # that do not start from a kernel bug.
+    security_opt:
+      - no-new-privileges:true
+
+    # Drop every Linux capability, then add back only what the image documents it needs.
+    # An app that never chowns a file, binds a low port or changes its own network config
+    # needs none of them.
+    #
+    # Expect to need additions for images that drop privileges at startup. LinuxServer
+    # images typically need one or more of:
+    #   cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    # Add the minimum, and add a comment in the service file saying which capability and
+    # why. `cap_drop: ALL` plus a documented `cap_add` is a record of privilege; no
+    # cap_drop at all is an assumption.
+    cap_drop:
+      - ALL
+
+    # Bound the number of processes, so a fork bomb in one container cannot exhaust the host.
+    pids_limit: 256
+
+    # Bound memory, so one runaway service cannot cause host-wide pressure or swap thrash.
+    # Raise it per service rather than removing it. mem_limit applies to non-swarm Compose;
+    # under swarm the equivalent is deploy.resources.limits.memory.
+    mem_limit: 512m
+
+    # Read-only root filesystem. Deliberately NOT set by default, because most images write
+    # somewhere at startup and a broken service is worse than an unhardened one. Adopt it
+    # per service, after checking where the image writes:
+    #
+    #   read_only: true
+    #   tmpfs:
+    #     - /tmp:size=64m,mode=1777
+    #
+    # Writable state belongs in a named volume or a tmpfs, which is what makes the writable
+    # surface explicit. If an image insists on writing elsewhere, add a tmpfs for that path
+    # first; use read_only: false only with a comment naming the path.
+    # read_only: true
+    # tmpfs:
+    #   - /tmp:size=64m,mode=1777
+
+    logging: *logging

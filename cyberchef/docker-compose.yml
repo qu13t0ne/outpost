@@ -5,4 +5,5 @@ services:
     image: mpepping/cyberchef
     restart: unless-stopped
     ports:
-      - $PORT:8000
+      # Bound to the host LAN address so only Caddy can reach it. Never 0.0.0.0.
+      - "${BIND_ADDR}:${PORT}:8000"

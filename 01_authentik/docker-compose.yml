@@ -51,6 +51,7 @@ services:
     env_file:
     - .env
     environment:
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
@@ -61,9 +62,11 @@ services:
     networks:
       - authentik
       - outpost
+    # Loopback only: reachable only through Caddy on this host, never directly from the LAN.
+    # The embedded outpost is proxied by Caddy, so nothing else needs to reach these ports.
     ports:
-    - ${COMPOSE_PORT_HTTP:-9000}:9000
-    - ${COMPOSE_PORT_HTTPS:-9443}:9443
+    - "127.0.0.1:${COMPOSE_PORT_HTTP:-9000}:9000"
+    - "127.0.0.1:${COMPOSE_PORT_HTTPS:-9443}:9443"
     restart: unless-stopped
     volumes:
     - $CONFIG_PATH/media:/media
@@ -79,6 +82,7 @@ services:
     env_file:
     - .env
     environment:
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
@@ -89,9 +93,10 @@ services:
     networks:
       - authentik
     restart: unless-stopped
-    user: root
+    # The Docker socket is deliberately NOT mounted here. This deployment uses Authentik's
+    # embedded outpost, which runs in-process and needs no socket. The worker never manages
+    # other containers, so a socket mount would only add a container-escape path for nothing.
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
     - $CONFIG_PATH/media:/media
     - $CONFIG_PATH/certs:/certs
     - $CONFIG_PATH/custom-templates:/templates
