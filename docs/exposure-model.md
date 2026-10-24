@@ -6,17 +6,21 @@ consistent as services are added.
 
 It describes decisions, not an implementation. Where an item is not built yet, that is stated.
 
+`server1` and `server2` below are the **two-host example names** for the option-2 layout in the
+README -- the proxy host and the application host. On a single host (option 1) they collapse to one
+machine and the application ports are not published at all.
+
 ## Tiers
 
 There are three tiers. A service belongs to exactly one tier for each surface it exposes, so a
 service with a public share surface in addition to a private application surface appears in two
 rows of the per-service table below.
 
-| Tier          | Reachable from       | Services                                                                 |
-| ------------- | -------------------- | ------------------------------------------------------------------------ |
-| Public        | Internet             | Immich share hostname only                                               |
-| VPN (tailnet) | Tailnet members only | Immich app, Nextcloud, Wallabag, Syncthing, Dashy, Authentik, Proxmox UI |
-| LAN           | User LAN, via Caddy  | CyberChef, Speedtest                                                     |
+| Tier          | Reachable from       | Services                                                                           |
+| ------------- | -------------------- | ---------------------------------------------------------------------------------- |
+| Public        | Internet             | Immich share hostname only                                                         |
+| VPN (tailnet) | Tailnet members only | Immich app, Nextcloud, Wallabag, Syncthing, Dashy, Authentik, a hypervisor console |
+| LAN           | User LAN, via Caddy  | CyberChef, Speedtest                                                               |
 
 The Public tier carries one hostname. It is the Immich share surface, and it is gated by a
 Cloudflare Access one-time PIN before any request reaches the origin. Nothing else is published to
@@ -39,7 +43,7 @@ design; the network position is the entire control.
 | Immich (app)    | `./immich/`            | VPN (tailnet) | Authentik OIDC                               |
 | Immich (shares) | `./immich/`            | Public        | Cloudflare Access one-time PIN               |
 | Nextcloud       | `./nextcloud/`         | VPN (tailnet) | Authentik OIDC                               |
-| Proxmox UI      | not in this repo       | VPN (tailnet) | Host login; tailnet is the primary control   |
+| Hypervisor UI   | not in this repo       | VPN (tailnet) | Host login; tailnet is the primary control   |
 | Speedtest       | `./speedtest-tracker/` | LAN           | None; unauthenticated                        |
 | Syncthing       | `./syncthing/`         | VPN (tailnet) | Native auth; sync ports on the tailnet only  |
 | Wallabag        | `./wallabag/`          | VPN (tailnet) | Native login plus TOTP                       |
@@ -99,8 +103,8 @@ those clients, because they cannot complete an interactive login redirect. In pr
 - public share links, opened by people who have no account and no cookie.
 
 OIDC keeps authentication inside the application, where the client can use its own token or app
-password while the browser still gets a single-sign-on redirect. Wallabag, Dashy, Syncthing and the
-Proxmox UI keep their native authentication, with the tailnet as the transport-level control.
+password while the browser still gets a single-sign-on redirect. Wallabag, Dashy, Syncthing and a
+hypervisor console keep their native authentication, with the tailnet as the transport-level control.
 Nextcloud and Immich use Authentik OIDC because their client ecosystems need real application
 tokens rather than a proxy cookie.
 

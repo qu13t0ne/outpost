@@ -9,7 +9,14 @@
 # then load it and make it persistent with the host's nftables service, not with a hand-run
 # command.
 #
-# Why this file exists: it is the only east-west enforcement point that is not pfSense (see
+# Scope: multi-host layout (deployment option 2 in the README) only. This ruleset exists because
+# Caddy and the applications live on different hosts, so the application ports are published and a
+# guest firewall is the control. On a single host (option 1) Caddy and the apps share one Docker
+# network, the app ports are never published, and this ruleset does not apply; the loopback and
+# never-0.0.0.0 invariants still hold there.
+#
+# Why this file exists: it is the only east-west enforcement point that is not the perimeter
+# firewall (see
 # docs/east-west.md). Drop logging is the only east-west telemetry available: no device
 # between the two VMs can export flow data, so a dropped packet from here is the signal.
 #

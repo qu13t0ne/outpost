@@ -3,15 +3,20 @@
 This document records the server-LAN position: what filters traffic between server1 and server2,
 what does not, and which risks are accepted as a result.
 
+> Scope: this describes the **two-host layout (deployment option 2 in the README)**. On a single host
+> (option 1), Caddy and every application share one host and one Docker network, so the application
+> ports are never published and the guest nftables ruleset in `docs/nftables-*.nft` does not apply;
+> only the loopback and never-`0.0.0.0` invariants carry over.
+
 ## The technical fact
 
-pfSense is a physical appliance. When server1 and server2 share a subnet, their traffic is switched
-at layer 2 and never reaches a pfSense interface, so pfSense cannot filter it. pfSense is therefore
-the perimeter firewall only. It governs traffic that crosses the perimeter, not traffic between the
-two servers.
+The perimeter is a **physical appliance** -- pfSense, OPNsense, or a dedicated router box. When
+server1 and server2 share a subnet, their traffic is switched at layer 2 and never reaches any
+appliance interface, so the firewall cannot filter it. The appliance is therefore the perimeter
+boundary only. It governs traffic that crosses the perimeter, not traffic between the two servers.
 
-This is a property of the topology, not of the pfSense configuration. No rule on the appliance can
-compensate for it, because the packets never arrive there.
+This is a property of the topology, not of a particular perimeter configuration. No rule on the
+appliance can compensate for it, because the packets never arrive there.
 
 ## The two implemented layers
 
@@ -90,7 +95,7 @@ These are known and accepted. Each is a deliberate trade, not an oversight.
 | No east-west prevention survives host compromise | Container escape is the hard step; layers stop below it.  |
 | Authentik downtime blocks Nextcloud/Immich login | Deliberate trade; break-glass admin in each app.          |
 | Nextcloud AIO keeps a read-write Docker socket   | AIO requires it to spawn its own containers.              |
-| Operator laptop retains firewall-wide access     | Until SSH moves to the tailnet.                           |
+| Workstation on the LAN keeps wide access         | Until SSH moves to the tailnet.                           |
 
 A rooted guest can rewrite its own ruleset, so layer 2 is not a boundary against a host that is
 already fully compromised. Out-of-band enforcement would be the answer, but it costs either
@@ -102,7 +107,7 @@ failed attempt is visible.
 No east-west prevention survives a full host compromise. Container escape is the hard step, and the
 two layers stop everything below it. Nextcloud AIO keeps a read-write Docker socket because AIO
 requires it to spawn its own containers; that is an accepted consequence of the AIO deployment
-model, not an oversight. The operator laptop keeps firewall-wide access until SSH moves to the
+model, not an oversight. Any such workstation keeps firewall-wide access until SSH moves to the
 tailnet, which is a scheduling item rather than a design decision.
 
 ## Telemetry
@@ -117,20 +122,20 @@ counted in the daily digest are therefore treated as an alert, not as noise.
 
 ## Considered and not implemented
 
-| Option                  | Status      | Reason                                                             |
-| ----------------------- | ----------- | ------------------------------------------------------------------ |
-| Proxmox VM firewall     | Not adopted | Declined for simplicity.                                           |
-| pfSense re-segmentation | Not adopted | Inter-VM bulk transfers would go on the wire; pfSense is physical. |
+| Option                     | Status      | Reason                                                               |
+| -------------------------- | ----------- | -------------------------------------------------------------------- |
+| Hypervisor per-VM firewall | Not adopted | Declined for simplicity.                                             |
+| Perimeter re-segmentation  | Not adopted | Inter-VM bulk transfers would go on the wire; a physical box cannot. |
 
-Re-segmentation would place the two VMs on separate networks with pfSense routing between them. That
-makes the appliance a filtering point, but it also puts every inter-VM bulk transfer on the wire,
-including backups and media movement that are currently switched locally at line rate. For the
-present workload the bandwidth cost outweighs the filtering gain.
+Re-segmentation would place the two VMs on separate networks with the perimeter firewall routing
+between them. That makes a physical appliance a filtering point, but it also puts every inter-VM bulk
+transfer on the wire, including backups and media movement that are currently switched locally at
+line rate. For the present workload the bandwidth cost outweighs the filtering gain.
 
-The Proxmox VM firewall would give a host-level ruleset per VM and is a viable future layer. It was
-declined for simplicity: it duplicates the guest rulesets and adds a second place to keep the same
-policy correct.
+The hypervisor per-VM firewall would give a host-level ruleset per VM and is a viable future layer.
+It was declined for simplicity: it duplicates the guest rulesets and adds a second place to keep the
+same policy correct.
 
 Both remain revisit options. Revisit re-segmentation if inter-VM data volume stops mattering, and the
-Proxmox firewall if the guest rulesets become hard to maintain or need a fallback that survives a
+per-VM firewall if the guest rulesets become hard to maintain or need a fallback that survives a
 compromised guest.

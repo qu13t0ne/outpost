@@ -78,6 +78,12 @@ Details below in relevant sections.
 FWIW, I'm using option 2, with a host for proxy and a host for running apps.
 Default saved configurations in most `docker-compose.yml` files will reflect this.
 
+The documentation under `docs/`, including the per-service `${BIND_ADDR}` port patterns in the
+service readmes and the `docs/nftables-*.nft` guest rulesets, describes that option-2 layout. On
+option 1 (single host) the proxy and the applications share one Docker network, so an application
+port is not published at all: Caddy reaches the app by container name over the `outpost` network,
+and the guest nftables ruleset does not apply.
+
 ### Prep Host System
 
 See [Host System Setup](./docs/host-system-setup.md).

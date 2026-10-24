@@ -19,9 +19,9 @@
 		# cannot spoof CF-Connecting-IP and appear to arrive from Cloudflare.
 		#
 		# Replace the range below with the Docker network range that holds the cloudflared
-		# container. Confirm it on the proxy host with:
+		# container. The value below is an RFC 5737 placeholder; confirm it on the proxy host with:
 		#   docker network inspect outpost --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
-		trusted_proxies static 172.30.0.0/24
+		trusted_proxies static 192.0.2.0/24
 
 		# Take the client IP from this header, but only when the peer is trusted above.
 		client_ip_headers CF-Connecting-IP
