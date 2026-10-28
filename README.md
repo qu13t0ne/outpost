@@ -25,25 +25,30 @@ Build yourself an outpost.
 - **Reverse Proxy, Internet Access, and IAM**
   - [Caddy Reverse Proxy](./00_proxy/) - Provides reverse proxy to all hosted services
   - [Cloudflared](./00_proxy/) - Provides reverse proxy from Internet to Caddy without opening the firewall or messing with dynamic DNS on the host machine
-  - [Authentik](./01_authentik/) - Identity provider for OIDC single sign-on. VPN tier only, never
-    internet-reachable. Wiring: [Authentik OIDC runbook](./docs/authentik-oidc.md)
+  - [Authentik](./01_authentik/) - Identity provider for OIDC single sign-on; an exposed surface on
+    the tailnet and user LAN with its own login and MFA, never on the internet. Wiring:
+    [Authentik OIDC runbook](./docs/authentik-oidc.md)
 - **Monitoring:**
   - Portainer was removed from this repo. Container status and logs come from `docker context` over
     SSH, plus Dozzle if a web view is wanted, so no service holds a writable Docker socket. Portainer
     needed one, and a writable socket is a host root path for anything that can reach the UI.
 - **Apps and Services**
-  - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app (LAN tier)
-  - [Dashy](./dashy/) - Dashboard and start page (VPN tier)
-  - [Immich](./immich/) - Self-hosted photo and video management solution (VPN tier, plus a public
-    share surface)
-  - [Nextcloud](./nextcloud) - Flexible open source file synchronization and sharing solution (VPN tier)
-  - [Syncthing](./syncthing/) - File synchronization service (VPN tier; sync ports on the tailnet)
-  - [Speedtest Tracker](./speedtest-tracker/) - Network speed monitoring app (LAN tier)
-  - [Wallabag](./wallabag/) - Read-it-later solution (VPN tier)
+  - [CyberChef](./cyberchef/) - Cyber Swiss Army Knife web app; exposed, reachable on the tailnet
+    and the user LAN, no gate because it is client-side only
+  - [Dashy](./dashy/) - Dashboard and start page, reachable on the tailnet and the user LAN
+  - [Immich](./immich/) - Self-hosted photo and video management solution, reachable on the tailnet
+    and the user LAN, plus a public share surface
+  - [Nextcloud](./nextcloud) - Flexible open source file synchronization and sharing solution,
+    reachable on the tailnet and the user LAN
+  - [Syncthing](./syncthing/) - File synchronization service, reachable on the tailnet and the user
+    LAN, with sync ports on the tailnet only
+  - [Speedtest Tracker](./speedtest-tracker/) - Network speed monitoring app; exposed, reachable on
+    the tailnet and the user LAN
+  - [Wallabag](./wallabag/) - Read-it-later solution, reachable on the tailnet and the user LAN
 
-Tiers are defined in [the exposure model](./docs/exposure-model.md). Each service directory publishes
-its port on the host LAN address from `BIND_ADDR`, never on `0.0.0.0`, and the app host's nftables
-ruleset accepts those ports from the proxy host only.
+The lanes and controls are defined in [the exposure model](./docs/exposure-model.md). Each service
+directory publishes its port on the host LAN address from `BIND_ADDR`, never on `0.0.0.0`, and the
+app host's nftables ruleset accepts those ports from the proxy host only.
 
 <!-- Archived; these now live under x_archive/. -->
 <!-- - **[Adminer](./x_archive/x_adminer/)** - Database management web UI -->
@@ -54,8 +59,9 @@ ruleset accepts those ports from the proxy host only.
 
 ## Documentation
 
-- [Exposure model](./docs/exposure-model.md) - the three tiers, which service sits in which, the
-  single-ingress invariant, the authentication policy, and the Cloudflare exit plan
+- [Exposure model](./docs/exposure-model.md) - the lanes and controls, which service sits in which,
+  the user/server re-segmentation, the single-ingress invariant, the authentication policy, and the
+  Cloudflare exit plan
 - [East-west security](./docs/east-west.md) - why pfSense cannot filter traffic between the two
   servers, the layers that do, and the accepted residual risks
 - [Authentik OIDC runbook](./docs/authentik-oidc.md) - wiring single sign-on into Nextcloud and

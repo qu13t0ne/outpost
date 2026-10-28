@@ -18,6 +18,10 @@ boundary only. It governs traffic that crosses the perimeter, not traffic betwee
 This is a property of the topology, not of a particular perimeter configuration. No rule on the
 appliance can compensate for it, because the packets never arrive there.
 
+This holds while the two servers _share a subnet_. The user/server re-segmentation, the adopted third
+layer below, puts them on separate segments behind the firewall, and from that point the appliance is
+a filtering point for user-segment traffic.
+
 ## The two implemented layers
 
 The east-west position is enforced by two layers that do not depend on pfSense.
@@ -85,6 +89,23 @@ with a declarative nftables file is one more thing to get wrong at 2am.
 Neither approach requires touching Docker's own `DOCKER`, `DOCKER-USER` or `DOCKER-ISOLATION` chains,
 and neither file does. Both nftables files carry this caveat in their own comments.
 
+## The adopted third layer -- the perimeter boundary
+
+The two layers above enforce east-west _within the server segment_ and do not need the perimeter. A
+third layer does need it, and it is adopted: the servers live on a **separate server segment** behind
+pfSense, the user LAN becomes a separate **user segment**, and the firewall routes user-segment
+traffic into the server segment only to the exposed surface (Caddy on 443). The privileged hosts --
+the hypervisor console, the jumpbox, and the administrative reach of the identity provider -- are not
+reachable from the user segment at all.
+
+This is the one case where a physical appliance is a real east-west control: user-segment traffic now
+passes the firewall's user-facing interface, so the firewall can, and does, filter it, admitting only
+the exposed surface. It composes with the two above -- between-segment at the firewall,
+within-segment on the host -- and is distinct from the per-VM firewall in *Considered and not
+implemented* below, which is a host-level ruleset, not a network boundary. The cost is that
+inter-segment bulk transfers (backups, media movement) go on the wire instead of switching locally at
+line rate, and that bandwidth is traded for keeping the privileged hosts off the user segment.
+
 ## Accepted residual risks
 
 These are known and accepted. Each is a deliberate trade, not an oversight.
@@ -95,20 +116,21 @@ These are known and accepted. Each is a deliberate trade, not an oversight.
 | No east-west prevention survives host compromise | Container escape is the hard step; layers stop below it.  |
 | Authentik downtime blocks Nextcloud/Immich login | Deliberate trade; break-glass admin in each app.          |
 | Nextcloud AIO keeps a read-write Docker socket   | AIO requires it to spawn its own containers.              |
-| Workstation on the LAN keeps wide access         | Until SSH moves to the tailnet.                           |
+| A user-segment host keeps wide access            | Until SSH moves to the tailnet.                           |
 
 A rooted guest can rewrite its own ruleset, so layer 2 is not a boundary against a host that is
 already fully compromised. Out-of-band enforcement would be the answer, but it costs either
 bandwidth or complexity, so the risk is carried. The mitigations that keep it small are: loopback
 binds for the identity provider, as few published ports as the services allow, `cap_drop: ALL`,
-`no-new-privileges`, VPN-only reachability for the sensitive services, and drop logging so that a
+`no-new-privileges`, tailnet-only reachability for the sensitive services, and drop logging so that a
 failed attempt is visible.
 
 No east-west prevention survives a full host compromise. Container escape is the hard step, and the
 two layers stop everything below it. Nextcloud AIO keeps a read-write Docker socket because AIO
 requires it to spawn its own containers; that is an accepted consequence of the AIO deployment
-model, not an oversight. Any such workstation keeps firewall-wide access until SSH moves to the
-tailnet, which is a scheduling item rather than a design decision.
+model, not an oversight. Any such user-segment host keeps firewall-wide access until SSH moves to the
+tailnet, which is a scheduling item rather than a design decision; on the tailnet the device-class
+split further restricts who then may reach the privileged hosts.
 
 ## Telemetry
 
@@ -122,20 +144,16 @@ counted in the daily digest are therefore treated as an alert, not as noise.
 
 ## Considered and not implemented
 
-| Option                     | Status      | Reason                                                               |
-| -------------------------- | ----------- | -------------------------------------------------------------------- |
-| Hypervisor per-VM firewall | Not adopted | Declined for simplicity.                                             |
-| Perimeter re-segmentation  | Not adopted | Inter-VM bulk transfers would go on the wire; a physical box cannot. |
-
-Re-segmentation would place the two VMs on separate networks with the perimeter firewall routing
-between them. That makes a physical appliance a filtering point, but it also puts every inter-VM bulk
-transfer on the wire, including backups and media movement that are currently switched locally at
-line rate. For the present workload the bandwidth cost outweighs the filtering gain.
+| Option                     | Status      | Reason                                                     |
+| -------------------------- | ----------- | ---------------------------------------------------------- |
+| Hypervisor per-VM firewall | Not adopted | Declined for simplicity; it duplicates the guest rulesets. |
 
 The hypervisor per-VM firewall would give a host-level ruleset per VM and is a viable future layer.
 It was declined for simplicity: it duplicates the guest rulesets and adds a second place to keep the
-same policy correct.
+same policy correct. Revisit it if the guest rulesets become hard to maintain or need a fallback that
+survives a compromised guest.
 
-Both remain revisit options. Revisit re-segmentation if inter-VM data volume stops mattering, and the
-per-VM firewall if the guest rulesets become hard to maintain or need a fallback that survives a
-compromised guest.
+The re-segmentation has since left this table: it is **adopted**, described under *The adopted third
+layer* above, with the order of operations in the operator's private lab notes. The bandwidth cost it
+carries is the reason it was declined here first, and that cost has now been accepted in exchange for
+keeping the privileged hosts off the user segment.

@@ -1,17 +1,17 @@
 # Authentik OIDC runbook (Phase 2)
 
 **Status: not executed.** This is the runbook for wiring single sign-on. Nothing here has been
-applied to a live host yet. Read [exposure-model.md](./exposure-model.md) first for the tiers and the
+applied to a live host yet. Read [exposure-model.md](./exposure-model.md) first for the lanes and the
 authentication policy this follows.
 
 ## Scope
 
 Phase 2 implements **OIDC only**, for exactly two applications:
 
-| Application | Provider slug | Tier |
-| ----------- | ------------- | ---- |
-| Nextcloud   | `nextcloud`   | VPN  |
-| Immich      | `immich`      | VPN  |
+| Application | Provider slug | Lane    |
+| ----------- | ------------- | ------- |
+| Nextcloud   | `nextcloud`   | tailnet |
+| Immich      | `immich`      | tailnet |
 
 Everything else keeps what it already has, on purpose:
 
@@ -19,8 +19,8 @@ Everything else keeps what it already has, on purpose:
 | -------------------- | --------------------------------------------------------------------- |
 | Wallabag             | Native auth plus TOTP. Phone use all day; an edge gate breaks the API |
 | Syncthing            | Native auth plus an API key; sync traffic is not HTTP                 |
-| CyberChef, Speedtest | LAN tier, unauthenticated or app-native                               |
-| Dashy                | VPN tier, no auth, contains no data                                   |
+| CyberChef, Speedtest | Exposed surface; unauthenticated or app-native                        |
+| Dashy                | Tailnet and user LAN via Caddy; no auth, contains no data             |
 | Authentik itself     | Its own login                                                         |
 
 **No proxy outpost is implemented.** Nothing uses `forward_auth`, so the proxy-provider path is out
@@ -43,10 +43,10 @@ that matter. OIDC gives identity without breaking them. Full reasoning in
    - `auth.<domain>` (Authentik), resolved by split DNS to server1
    - `cloud.<domain>` and `photos.<domain>`, resolved to server1
    Both app hosts are reached through Caddy on server1, so all three names point at server1.
-3. Caddy has a site block for `auth.<domain>` on the **LAN/VPN listener only**. Do not create a
-   Cloudflare Tunnel ingress rule for it. The IdP must never be internet-reachable; that is the whole
-   reason Nextcloud is VPN-only.
-4. The tailnet is up, because the VPN-tier route is how a phone or laptop reaches all three names.
+3. Caddy has a site block for `auth.<domain>` on the **user LAN and tailnet listeners only**. Do not
+   create a Cloudflare Tunnel ingress rule for it. The IdP must never be internet-reachable; that is
+   the whole reason Nextcloud is tailnet-only.
+4. The tailnet is up, because the tailnet route is how a phone or laptop reaches all three names.
 
 Verify point 2 from inside the app containers, not just from your laptop:
 
@@ -156,7 +156,7 @@ Notes:
 
 - **Register both redirect URIs**, web and mobile, or the mobile app fails while the web app works.
 - `AUTO_REGISTER=true` is a convenience for family accounts. It also means anyone who can complete
-  the IdP login gets an Immich account. That is acceptable while the IdP is VPN-only and MFA is
+  the IdP login gets an Immich account. That is acceptable while the IdP is tailnet-only and MFA is
   enforced; revisit if the IdP ever becomes internet-reachable.
 - **Public share links must keep working unauthenticated.** After enabling OIDC, re-test a share link
   in a private window with no session.

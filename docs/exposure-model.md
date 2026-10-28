@@ -1,7 +1,7 @@
 # Exposure Model
 
-This document records the agreed exposure model for the services in this repository: which tier
-each service is reachable from, what gates access in that tier, and the rules that keep the model
+This document records the agreed exposure model for the services in this repository: which lane
+each service is reachable from, what gates access in that lane, and the rules that keep the model
 consistent as services are added.
 
 It describes decisions, not an implementation. Where an item is not built yet, that is stated.
@@ -10,57 +10,113 @@ It describes decisions, not an implementation. Where an item is not built yet, t
 README -- the proxy host and the application host. On a single host (option 1) they collapse to one
 machine and the application ports are not published at all.
 
-## Tiers
+## The lanes and controls
 
-There are three tiers. A service belongs to exactly one tier for each surface it exposes, so a
-service with a public share surface in addition to a private application surface appears in two
-rows of the per-service table below.
+A _lane_ answers "from which network can a request arrive"; a _control_ is "what stops the request."
+Two lanes carry a control that is not the mere fact of being on a network.
 
-| Tier          | Reachable from       | Services                                                                           |
-| ------------- | -------------------- | ---------------------------------------------------------------------------------- |
-| Public        | Internet             | Immich share hostname only                                                         |
-| VPN (tailnet) | Tailnet members only | Immich app, Nextcloud, Wallabag, Syncthing, Dashy, Authentik, a hypervisor console |
-| LAN           | User LAN, via Caddy  | CyberChef, Speedtest                                                               |
+- The **user LAN** is a physical segment and is not flat. It splits into a **user segment** and a
+  **server segment**, and the perimeter firewall (pfSense) sits between them: a user-segment host
+  may reach the _exposed surface_ (Caddy) on the server segment, and nothing else.
+- The **tailnet** is split by **device class**. An **admin device** (used only by the operator)
+  reaches the services and the **admin surface**; a **user device** (family, shared, or roaming)
+  reaches the services but **not the admin surface**.
 
-The Public tier carries one hostname. It is the Immich share surface, and it is gated by a
+| Lane or surface    | Reachable from           | Gate                                    |
+| ------------------ | ------------------------ | --------------------------------------- |
+| Public             | The internet             | A Cloudflare Access one-time PIN        |
+| Exposed surface    | User segment and tailnet | Per service; one Caddy route on 443     |
+| Admin surface      | Tailnet, admin device    | Tailscale device class, plus host login |
+| Consumer (TV, IoT) | User segment only        | None: it reaches an exposed surface     |
+
+A service is placed by the lanes it exposes, and it may expose more than one. The **exposed
+surface** reaches from the user segment and the tailnet alike; the **admin surface** reaches from the
+tailnet on an admin device only, never from the user segment or the internet. Each is described
+below, along with the device that has no lane at all.
+
+### The Public lane
+
+The Public lane carries one hostname. It is the Immich share surface, and it is gated by a
 Cloudflare Access one-time PIN before any request reaches the origin. Nothing else is published to
 the internet: not the Immich application, not the identity provider, not the dashboards.
 
-The VPN tier is reachable over the tailnet only. Tailscale device membership is the transport-level
-control; per-service authentication sits on top of it and is listed in the next section.
+### The tailnet, split by device class
 
-The LAN tier is reachable from the user LAN through Caddy. These services are unauthenticated by
-design; the network position is the entire control.
+The tailnet is reachable by any Tailscale member, from anywhere. Device membership is the
+transport-level control and per-service authentication sits on top of it. **Device class** is a
+second, independent control _inside_ the tailnet: an admin device reaches the admin surface, a user
+device does not. Tailscale device tags are the mechanism; the policy is authored in
+`net/tailscale-policy.hujson`, with the lab-specific tags in the operator's private notes.
+
+### The exposed surface, and the user segment
+
+Every data service and every Caddy-routed tool -- Immich, Nextcloud, Wallabag, Dashy, Syncthing,
+CyberChef, and Speedtest -- is an **exposed surface**: one Caddy route on 443, reachable from the
+user segment and from the tailnet. Reachability decides the lane, not a per-request test. CyberChef
+and Speedtest are deliberately **unauthenticated**; on that surface a request from either lane gets
+the same service, which is why they are now on both the user segment and the tailnet. The only
+surface that stays off one of those lanes is the admin surface, below.
+
+### The admin surface -- two parallel controls
+
+The **admin surface** (the jumpbox, the hypervisor console, and the administrative reach of the
+identity provider) is reachable from the tailnet on an **admin device** only. It is not reachable
+from the user segment and not reachable from the internet, by design. Its security rests on two
+parallel controls that **must both hold**:
+
+- the perimeter firewall keeps it **off the user segment**: a user-segment host, no matter how
+  compromised, cannot reach it, because the firewall admits the user segment only to the exposed
+  surface;
+- the device-class split keeps it **off every non-admin device**: a user or family device, no matter
+  where it sits, cannot reach it, because Tailscale routes it to the services and not to the admin
+  surface.
+
+Each guards a different vector. The firewall guards a compromised _physical_ host on the user
+segment; the device-class split guards a compromised _roaming_ device. Drop one and the other vector
+leaks, so both must hold. That is the whole reason the user/server re-segmentation is now adopted.
+
+### The consumer
+
+A device that exposes nothing -- a Roku, a smart TV, an IoT node, or a phone that is on the user
+segment only -- has no lane. It is a **consumer**: it reaches a service's exposed surface (for
+example a future Jellyfin instance) from the user segment. It has no lane of its own, because it
+exposes nothing: the question "where does this device go" is answered by the _service_ it needs, not
+by the device.
 
 ## Per-service gate
 
-| Service         | Repo path              | Tier          | Gate                                         |
-| --------------- | ---------------------- | ------------- | -------------------------------------------- |
-| Authentik       | `./01_authentik/`      | VPN (tailnet) | Its own login plus MFA                       |
-| Caddy           | `./00_proxy/`          | Edge          | None; terminates TLS and routes              |
-| CyberChef       | `./cyberchef/`         | LAN           | None; unauthenticated                        |
-| Dashy           | `./dashy/`             | VPN (tailnet) | Native login; tailnet is the primary control |
-| Immich (app)    | `./immich/`            | VPN (tailnet) | Authentik OIDC                               |
-| Immich (shares) | `./immich/`            | Public        | Cloudflare Access one-time PIN               |
-| Nextcloud       | `./nextcloud/`         | VPN (tailnet) | Authentik OIDC                               |
-| Hypervisor UI   | not in this repo       | VPN (tailnet) | Host login; tailnet is the primary control   |
-| Speedtest       | `./speedtest-tracker/` | LAN           | None; unauthenticated                        |
-| Syncthing       | `./syncthing/`         | VPN (tailnet) | Native auth; sync ports on the tailnet only  |
-| Wallabag        | `./wallabag/`          | VPN (tailnet) | Native login plus TOTP                       |
+| Service         | Reachable from      | Gate                                         |
+| --------------- | ------------------- | -------------------------------------------- |
+| Immich (app)    | tailnet + user LAN  | Authentik OIDC                               |
+| Nextcloud       | tailnet + user LAN  | Authentik OIDC                               |
+| Wallabag        | tailnet + user LAN  | Native login plus TOTP                       |
+| Dashy           | tailnet + user LAN  | Native login; tailnet is the primary control |
+| CyberChef       | tailnet + user LAN  | None; unauthenticated                        |
+| Speedtest       | tailnet + user LAN  | None; unauthenticated                        |
+| Syncthing (UI)  | tailnet + user LAN  | Native; sync ports on the tailnet only       |
+| Immich (shares) | internet            | Cloudflare Access one-time PIN               |
+| Authentik       | tailnet + user LAN  | Own login plus MFA; container loopback-bound |
+| Hypervisor UI   | tailnet, admin only | Host login; not reachable from the user LAN  |
 
-Caddy is listed as an edge component rather than a tier member: it is the ingress for the LAN tier
-and, behind the tunnel, for the Public tier.
+Caddy is an edge component rather than a lane: it is the single ingress for the exposed surface
+(reachable from the user segment and the tailnet) and, behind the tunnel, for the Public lane.
+The `jumpbox` is the operator's SSH entry to the server segment; it is on the admin surface.
 
 ## The invariant
 
-> User LAN has exactly one ingress, and Caddy can reach everything that must be reachable from the
-> user LAN.
+> The user segment has exactly one ingress, and Caddy can reach everything that must be reachable
+> from the user segment.
 
-Every LAN-reachable service is reached through Caddy on port 443. No service publishes on
+Every user-segment-reachable service is reached through Caddy on port 443. No service publishes on
 `0.0.0.0`, and no second ingress from the internet exists. Caddy must be able to reach every service
-the user LAN is expected to reach, so a service that is bound to the host network or published on a
+the user segment is expected to reach, so a service that is bound to the host network or published on a
 loopback address needs an explicit route from Caddy. If a new service cannot satisfy both halves of
 the invariant, the model changes before it ships.
+
+The perimeter firewall enforces the first half: the user segment reaches only the exposed surface,
+and the admin surface is not reachable from it at all. The bind address does not enforce anything by
+itself -- *Port publication* shows why -- so the two controls are the firewall between segments and
+the host ruleset within the segment.
 
 ## Port publication
 
@@ -75,11 +131,11 @@ Where each surface listens, and what the address alone does and does not prove:
 | Syncthing web UI     | `${BIND_ADDR}:8384`, proxied by Caddy like every other UI |
 
 `BIND_ADDR` is the host LAN address and `0.0.0.0` is never used. The LAN-facing bind is not
-optional: Caddy runs on server1 and the applications run on server2, so the proxy reaches them over
-the user LAN. That means the bind address does not by itself make a port Caddy-only. What makes it
-Caddy-only is the `prerouting` chain in `docs/nftables-server2.nft`, which runs before Docker's DNAT
-and accepts those ports from server1 and from nowhere else. Without that chain a `BIND_ADDR` port is
-reachable from the whole user LAN.
+optional: Caddy runs on server1 and the applications run on server2, so the proxy reaches them across
+the server segment. That means the bind address does not by itself make a port Caddy-only. What makes
+it Caddy-only is the `prerouting` chain in `docs/nftables-server2.nft`, which runs before Docker's
+DNAT and accepts those ports from server1 and from nowhere else. Without that chain a `BIND_ADDR`
+port is reachable from every host on that LAN.
 
 Syncthing splits into two surfaces and shows the rule: the sync ports bind to `${TAILSCALE_ADDR}`
 because that traffic is tailnet-only, while the web UI is a browser surface and therefore goes
@@ -132,7 +188,7 @@ WireGuard link:
    instance on server1.
 5. Remove the cloudflared container from `./00_proxy/`.
 
-Caddy keeps owning TLS and routing for the internal tiers, so the swap touches one container and
+Caddy keeps owning TLS and routing for the internal lanes, so the swap touches one container and
 one DNS record. The Cloudflare Access one-time PIN on the public share hostname is replaced by an
 access control decision at the VPS edge; that decision has to be defined before the cutover, not
 during it.
@@ -155,6 +211,8 @@ Considered and deliberately not adopted in this phase. Each is a candidate for a
 | Wazuh                         | Drop-logging digest covers host telemetry; Wazuh is large for two hosts.      |
 | Prometheus and Grafana        | No metrics consumer yet; collection without alert rules is not a decision.    |
 | Authelia instead of Authentik | Authentik is deployed and integrated; swapping IdPs is a migration.           |
-| pfSense re-segmentation       | pfSense is physical, so segmented inter-VM traffic would go on the wire.      |
 
-Re-segmentation and the east-west position are set out in more detail in `docs/east-west.md`.
+The **perimeter user/server re-segmentation** has left this list: it is adopted, and it is the
+boundary that admits only the exposed surface to the user segment. The remaining items stay
+deferred. The re-segmentation and the east-west position are set out in `docs/east-west.md`; the
+order of operations is in the operator's private lab notes.
