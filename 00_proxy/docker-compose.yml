@@ -9,6 +9,7 @@ services:
       # - "${BIND_ADDR}:80:80"
       # Bound to the host LAN address, not 0.0.0.0: the single LAN ingress is Caddy on 443.
       - "${BIND_ADDR}:443:443"
+      - "${TAILSCALE_ADDR}:443:443
     environment:
       - EMAIL_FOR_ACME
       - CF_API_TOKEN
