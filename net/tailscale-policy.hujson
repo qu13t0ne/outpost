@@ -20,7 +20,7 @@
   // itself into the admin class, so it is the first thing to get right.
   //
   // A tag with no owner cannot be applied and will silently never be used, which looks
-  // exactly like a tag that is  nothing.
+  // exactly like a tag that is applied to nothing.
   "tagOwners": {
     // Operator devices only. This tag is the admin surface's whole control.
     "tag:admin": ["autogroup:admin"],
