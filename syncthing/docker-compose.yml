@@ -26,4 +26,4 @@ services:
       # Never publish it on 0.0.0.0.
       - "${BIND_ADDR}:8384:8384"
     volumes:
-      - ./conf:/config
+      - ${OUTPOST_CONFIG_DIR}/syncthing/conf:/config

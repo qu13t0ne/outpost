@@ -3,7 +3,7 @@ services:
     image: lissy93/dashy
     container_name: $CONTAINER_NAME
     volumes:
-      - ./user-data:/app/user-data
+      - ${OUTPOST_CONFIG_DIR}/dashy/user-data:/app/user-data
     ports:
       # Bound to the host LAN address so only Caddy can reach it. Never 0.0.0.0.
       - "${BIND_ADDR}:${PORT}:8080"

@@ -1,16 +1,50 @@
-.env
-appdata/
-conf/
+# .gitignore - the public OUTPOST tree.
+#
+# Personal configuration reads from a resolved directory OUTSIDE this tree
+# (see docs/config-model.md). So the rule below is default-deny for the shapes
+# a config file takes - an .env, a Caddyfile, a conf dir, an appdata dir -
+# anywhere in the tree, with one allowlist: the shipped examples under
+# config.example/. A config value has nowhere in this tree to live. That is the
+# point: the working tree cannot hold personal state by habit, so the failure of
+# a `git add -A` publication or a lost disk holding the only copy cannot happen.
+#
+# gitignore is first-match-wins per path, so an un-ignore only wins when it comes
+# after the ignore it answers. The allowlist is therefore last.
+
+# --- Config shapes: denied anywhere in the tree -------------------------------
+**/.env
+**/.env.*
+**/*.local.*
+**/compose.env
+**/app.env
+**/outpost.env
+**/Caddyfile
+**/docker-compose.override.yml
+**/conf/
+**/appdata/
+**/APPDATA/
+**/user-data/
+**/*.custom
+**/*.pem
+**/*.key
+**/*.p12
+**/*.bak
+**/*.bak.*
+
+# --- Non-config shapes: kept from the original ignore list --------------------
+# Service data and working directories that are not personal config, and a vendor
+# compose file that is replaced on every upgrade.
 WIP/
 CUSTOM/
-Caddyfile
 db/
 mongodb/data/
-dashy/user-data/
-*.custom
-*/APPDATA/
+temp/
 immich/docker-compose.yml
-docker-compose.override.yml
-*.bak
-*.bak.*
-temp
+
+# --- Allowlist: the one config that may be committed -------------------------
+# Kept so template/.env.example survives **/.env.*.
+!**/.env.example
+# Dropped was the old !**/Caddyfile.example: the Caddyfile example now ships once,
+# under config.example/00_proxy/Caddyfile. The examples are the only config-shaped
+# things this tree commits, so this is the only rule that lets a config path in.
+!config.example/**

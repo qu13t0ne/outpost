@@ -7,7 +7,7 @@ services:
     ports:
     # Bound to the host LAN address so only Caddy can reach it. Never 0.0.0.0.
     - "${BIND_ADDR}:${PORT}:80"
-    env_file: .env
+    env_file: ${OUTPOST_CONFIG_DIR}/speedtest-tracker/app.env
     environment:
     - DB_CONNECTION=sqlite
     # true is for temporary debugging only: it exposes stack traces and config in the UI.

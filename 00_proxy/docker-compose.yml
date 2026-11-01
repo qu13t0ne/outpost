@@ -13,11 +13,10 @@ services:
       # tailnet-only device, so this second address is what gives the overlay a way in.
       # Two addresses and no wildcard: that is the whole bind rule.
       - "${TAILSCALE_ADDR}:443:443"
-    environment:
-      - EMAIL_FOR_ACME
-      - CF_API_TOKEN
+    env_file:
+      - ${OUTPOST_CONFIG_DIR}/00_proxy/app.env
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${OUTPOST_CONFIG_DIR}/00_proxy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ${APPDATA}/caddy/data:/data
       - ${APPDATA}/caddy/config:/config
       - ./static:/static:ro
@@ -28,8 +27,6 @@ services:
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate run --token $TUNNEL_TOKEN
     container_name: tunnel
-    environment:
-      - TUNNEL_TOKEN
     restart: always
     networks:
       - outpost
