@@ -11,3 +11,6 @@ dashy/user-data/
 */APPDATA/
 immich/docker-compose.yml
 docker-compose.override.yml
+*.bak
+*.bak.*
+temp
