@@ -4,7 +4,12 @@ This document records the agreed exposure model for the services in this reposit
 each service is reachable from, what gates access in that lane, and the rules that keep the model
 consistent as services are added.
 
-It describes decisions, not an implementation. Where an item is not built yet, that is stated.
+It describes decisions, not an implementation. Where an item is not built yet, it is stated.
+
+> **Status: model.** This document describes the target and marks each row with what is
+> actually enforced. Read the status column before relying on a gate. The model is the part
+> worth copying into another estate; the status columns describe one deployment of it and will
+> not match yours.
 
 `server1` and `server2` below are the **two-host example names** for the option-2 layout in the
 README -- the proxy host and the application host. On a single host (option 1) they collapse to one
@@ -36,17 +41,29 @@ below, along with the device that has no lane at all.
 
 ### The Public lane
 
-The Public lane carries one hostname. It is the Immich share surface, and it is gated by a
-Cloudflare Access one-time PIN before any request reaches the origin. Nothing else is published to
-the internet: not the Immich application, not the identity provider, not the dashboards.
+The Public lane carries one hostname. It is the Immich share surface, and it is meant to be gated
+by a Cloudflare Access one-time PIN before any request reaches the origin.
+
+> **Status: not built in this deployment.** Eight hostnames are published on the tunnel and no
+> access application exists on any of them, so the tunnel currently carries no authentication
+> gate at all and one site block is genuinely reachable from the internet without one. The model
+> above is the target; the gate is a deployment step.
+
+Nothing else is published to the internet: not the Immich application, not the identity provider,
+not the dashboards.
 
 ### The tailnet, split by device class
 
 The tailnet is reachable by any Tailscale member, from anywhere. Device membership is the
 transport-level control and per-service authentication sits on top of it. **Device class** is a
 second, independent control _inside_ the tailnet: an admin device reaches the admin surface, a user
-device does not. Tailscale device tags are the mechanism; the policy is authored in
-`net/tailscale-policy.hujson`, with the lab-specific tags in the operator's private notes.
+device does not. Tailscale device tags are the mechanism; the policy shape is the template in
+[`../net/tailscale-policy.hujson`](../net/tailscale-policy.hujson), and the devices that occupy its
+classes are the operator's own information, not this repository's.
+
+> **Status: modelled, not applied.** In this deployment the policy is the allow-all default, so a
+> tag constrains nothing yet. An allow-all default is the shape a migration starts from; it is
+> never the shape it ends in.
 
 ### The exposed surface, and the user segment
 
@@ -75,6 +92,10 @@ Each guards a different vector. The firewall guards a compromised _physical_ hos
 segment; the device-class split guards a compromised _roaming_ device. Drop one and the other vector
 leaks, so both must hold. That is the whole reason the user/server re-segmentation is now adopted.
 
+> **Status: neither control is enforced yet in this deployment.** The overlay policy accepts every
+> member, and the perimeter admits the user segment to the whole server segment, so the admin surface
+> is reachable from both vectors today. The two controls are deployment steps, not existing facts.
+
 ### The consumer
 
 A device that exposes nothing -- a Roku, a smart TV, an IoT node, or a phone that is on the user
@@ -85,18 +106,22 @@ by the device.
 
 ## Per-service gate
 
-| Service         | Reachable from      | Gate                                         |
-| --------------- | ------------------- | -------------------------------------------- |
-| Immich (app)    | tailnet + user LAN  | Authentik OIDC                               |
-| Nextcloud       | tailnet + user LAN  | Authentik OIDC                               |
-| Wallabag        | tailnet + user LAN  | Native login plus TOTP                       |
-| Dashy           | tailnet + user LAN  | Native login; tailnet is the primary control |
-| CyberChef       | tailnet + user LAN  | None; unauthenticated                        |
-| Speedtest       | tailnet + user LAN  | None; unauthenticated                        |
-| Syncthing (UI)  | tailnet + user LAN  | Native; sync ports on the tailnet only       |
-| Immich (shares) | internet            | Cloudflare Access one-time PIN               |
-| Authentik       | tailnet + user LAN  | Own login plus MFA; container loopback-bound |
-| Hypervisor UI   | tailnet, admin only | Host login; not reachable from the user LAN  |
+| Service         | Reachable from      | Gate                                         | Enforced today |
+| --------------- | ------------------- | -------------------------------------------- | -------------- |
+| Immich (app)    | tailnet + user LAN  | Authentik OIDC                               | No; native accounts. Identity provider not deployed |
+| Nextcloud       | tailnet + user LAN  | Authentik OIDC                               | No; native accounts. Identity provider not deployed |
+| Wallabag        | tailnet + user LAN  | Native login plus TOTP                       | Login yes. Also reachable from the internet with no gate, which is a defect against this model |
+| Dashy           | tailnet + user LAN  | Native login; tailnet is the primary control | Login yes; the tailnet half is not enforced, because the policy accepts everybody |
+| CyberChef       | tailnet + user LAN  | None; unauthenticated                        | Yes; unauthenticated is the design |
+| Speedtest       | tailnet + user LAN  | None; unauthenticated                        | Yes; unauthenticated is the design |
+| Syncthing (UI)  | tailnet + user LAN  | Native; sync ports on the tailnet only       | No; sync ports still bind widely and are reachable on the local segment |
+| Immich (shares) | internet            | Cloudflare Access one-time PIN               | No; no access application exists on any tunnelled hostname |
+| Authentik       | tailnet + user LAN  | Own login plus MFA; container loopback-bound | Not deployed |
+| Hypervisor UI   | tailnet, admin only | Host login; not reachable from the user LAN  | Not yet; the perimeter admits the user segment to it |
+
+The right-hand column is the honest one. A model that reads as description is how an estate ends
+up believing it has gates it never built, which is exactly what happened here: this table was
+written as present tense while half of it was intent.
 
 Caddy is an edge component rather than a lane: it is the single ingress for the exposed surface
 (reachable from the user segment and the tailnet) and, behind the tunnel, for the Public lane.
@@ -170,6 +195,11 @@ Authentik is on the login path for Nextcloud and Immich. If Authentik is down, n
 Immich login is possible, including for administrators. This is a deliberate trade, accepted in
 exchange for centralised identity and MFA.
 
+> **Status: not yet true.** Neither application is behind the identity provider in this
+> deployment; both still authenticate against local accounts. The trade stated above is being
+> accepted in advance, which is the point of writing it down before a cutover rather than
+> discovering it during one.
+
 Mitigation: keep a local break-glass administrator account in each application, with credentials
 stored outside the identity provider, and confirm it still works after any Authentik change. The
 break-glass accounts are the recovery path, so they are not used for routine administration.
@@ -210,7 +240,7 @@ Considered and deliberately not adopted in this phase. Each is a candidate for a
 | Headscale                     | Hosted control plane works; self-hosting it adds a critical service.          |
 | Wazuh                         | Drop-logging digest covers host telemetry; Wazuh is large for two hosts.      |
 | Prometheus and Grafana        | No metrics consumer yet; collection without alert rules is not a decision.    |
-| Authelia instead of Authentik | Authentik is deployed and integrated; swapping IdPs is a migration.           |
+| Authelia instead of Authentik | The modelled identity provider is not deployed yet, so this is still an open choice rather than a migration |
 
 The **perimeter user/server re-segmentation** has left this list: it is adopted, and it is the
 boundary that admits only the exposed surface to the user segment. The remaining items stay

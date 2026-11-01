@@ -102,8 +102,32 @@
 # either exposes nothing or points the tunnel at a block that does not exist. Change both
 # or neither.
 #
-# There is no "local only" snippet any more. Reachability is decided by which networks can
-# reach Caddy and by trusted_proxies above, not by a remote_ip test inside a site block.
+# Two ways to keep a Pattern A hostname off the public path, and the ordering between them
+# matters:
+#
+#   1. The tunnel ingress (the model). A hostname that the tunnel does not route has no
+#      public path at all. This is the correct end state, and it needs no rule inside a
+#      site block.
+#   2. The address guard (the interim). A site block that admits only the LAN ranges, the
+#      loopback and the tailnet range returns 403 to a request that arrives through the
+#      tunnel, because cloudflared's peer address is the Docker network, not the client's.
+#      This is what makes a half-built ingress safe.
+#
+# Do not remove the guard until the ingress rules have been narrowed to the public
+# allowlist and every remaining hostname carries a gate. Removing it first converts every
+# tunnelled hostname into a public service in the same instant, with no test in between.
+# The snippet below is the shape used while the ingress is still being narrowed; it is
+# deliberately a snippet rather than a remote_ip test repeated per site block.
+
+(localOnly) {
+	@notLocal not remote_ip 192.0.2.0/24 198.51.100.0/24 100.64.0.0/10 127.0.0.1 ::1
+	respond @notLocal "Forbidden" 403
+}
+
+# 192.0.2.0/24 and 198.51.100.0/24 above are RFC 5737 placeholders for the user LAN and
+# the server LAN. 100.64.0.0/10 is the Tailscale CGNAT range (RFC 6598) and belongs as
+# written: the whole tailnet is one range and it is not estate-specific. The tunnel is
+# admitted by neither, which is the point.
 
 # ----- Initial Caddy Testing -----------------------------
 

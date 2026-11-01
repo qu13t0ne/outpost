@@ -24,7 +24,9 @@
 #   - server1 has a static IPv4 address on the user LAN and does not use IPv6 SLAAC or
 #     DHCPv6. This ruleset is IPv4-only; if the host needs IPv6, add the matching rules
 #     before loading, or the host loses IPv6 connectivity.
-#   - the user LAN subnet is the only network that may reach 443 and SSH.
+#   - the user LAN or the tailnet is the only source that may reach 443. SSH is still
+#     scoped to the user LAN only; it is scheduled to narrow to the tailnet once the
+#     device-class ACL is live, so it is left untouched here.
 #
 # This file does NOT start with `flush ruleset`. That command would also delete the tables
 # Docker installs through the iptables-nft backend, which breaks container networking until
@@ -32,6 +34,9 @@
 
 define USER_LAN = 203.0.113.0/24   # placeholder: the user LAN subnet, RFC 5737 example
 define SERVER1_ADDR = 192.0.2.10   # placeholder: this host's address on the user LAN
+# 100.64.0.0/10 is the Tailscale CGNAT range (RFC 6598): a generic placeholder for the
+# tailnet, not a lab value. It is the single source from which tailnet peers reach 443.
+define TAILNET = 100.64.0.0/10     # placeholder: the tailnet /10, Tailscale CGNAT
 
 # Replace this ruleset's table only, so a reload is idempotent and nothing else is touched.
 table inet outpost_guest
@@ -61,12 +66,13 @@ table inet outpost_guest {
 	chain prerouting {
 		type filter hook prerouting priority raw; policy accept;
 
-		# The single ingress: the user LAN may reach Caddy on 443.
-		ip daddr $SERVER1_ADDR tcp dport 443 ip saddr $USER_LAN accept
+		# The single ingress: the user LAN or the tailnet may reach Caddy on 443.
+		ip daddr $SERVER1_ADDR tcp dport 443 ip saddr { $USER_LAN, $TAILNET } accept
 
 		# Anything else aimed at 443 on this host is dropped and logged. With no cloudflared
 		# in the path this is the only way to reach Caddy, so a drop here means either a
-		# misconfigured client or someone probing from a network that is not the user LAN.
+		# misconfigured client or someone probing from a network that is neither the
+		# user LAN nor the tailnet.
 		ip daddr $SERVER1_ADDR tcp dport 443 \
 			limit rate 10/minute burst 20 packets log prefix "nft-drop " level info
 		ip daddr $SERVER1_ADDR tcp dport 443 counter drop
@@ -93,8 +99,9 @@ table inet outpost_guest {
 		ip saddr $USER_LAN tcp dport 22 accept
 
 		# 443 is accepted here as well, so the host keeps working if Caddy is ever moved out
-		# of Docker. Under Docker the prerouting chain above is what actually applies.
-		ip saddr $USER_LAN tcp dport 443 accept
+		# of Docker. The source is the user LAN or the tailnet, matching the prerouting
+		# chain above. Under Docker that chain is what actually applies.
+		ip saddr { $USER_LAN, $TAILNET } tcp dport 443 accept
 
 		# Authentik listens on 127.0.0.1:9000 and 127.0.0.1:9443 only. Loopback binds are
 		# not reachable across the inter-server path, so there is deliberately no rule for

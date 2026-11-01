@@ -1,0 +1,81 @@
+// tailscale-policy.hujson - device-class access policy, as a TEMPLATE.
+//
+// This file is the shape, not a deployment. Real device names, tags-as-applied and host
+// identities differ per estate and are substituted at deploy time; see ./README.md for the
+// substitution rules and the rules for what must never be committed here.
+//
+// Schema notes that cost time when they are wrong:
+//   - the top-level key is "acls", not "acl";
+//   - the policy is an allow-list. There is no "deny" action to write. A pair that is not
+//     accepted by some rule is denied by omission, so denial is the absence of a line and
+//     never a line of its own;
+//   - rules are evaluated first-match-wins within "acls";
+//   - "dst" is "<target>:<ports>", and "*" is valid for both.
+//
+// Run `tailscale debug validate /path/to/policy.hujson` before pasting a substitution into
+// the admin console. A policy that parses is not the same as a policy that says what was
+// meant; the "tests" array at the bottom is where the intent is checkable.
+{
+  // Who may apply each tag. Ownership is the control that stops a device from tagging
+  // itself into the admin class, so it is the first thing to get right.
+  //
+  // A tag with no owner cannot be applied and will silently never be used, which looks
+  // exactly like a tag that is applied to nothing.
+  "tagOwners": {
+    // Operator devices only. This tag is the admin surface's whole control.
+    "tag:admin": ["autogroup:admin"],
+
+    // Family, shared and roaming devices. Reaches services; reaches the control plane never.
+    "tag:user": ["autogroup:admin"],
+
+    // Machines that expose a service to the other classes. A server carries this.
+    "tag:service": ["autogroup:admin"],
+
+    // Machines that carry the control plane: hypervisor console, identity provider
+    // administration, the perimeter's management surface if it is ever put on the overlay.
+    // Reachable from tag:admin and from nothing else.
+    "tag:control": ["autogroup:admin"]
+  },
+
+  "acls": [
+    // An admin device reaches everything, including the control plane. This is deliberately
+    // broad: the admin device is the one device whose compromise already means compromise,
+    // so narrowing it buys nothing and costs the operator the ability to fix things.
+    {
+      "action": "accept",
+      "src": ["tag:admin"],
+      "dst": ["tag:*:*"]
+    },
+
+    // A user device reaches services. It does not reach tag:control, and it does not reach
+    // another user device, because neither pair is accepted below.
+    {
+      "action": "accept",
+      "src": ["tag:user"],
+      "dst": ["tag:service:*"]
+    }
+
+    // What is deliberately absent, and why it stays absent:
+    //   - any rule from tag:user to tag:control. The control plane is unreachable from a
+    //     user-class device over every protocol, which is the requirement this file exists
+    //     to satisfy;
+    //   - any accept-all for "autogroup:member". A single wildcard here would undo the
+    //     split and is the most common way this file gets broken;
+    //   - a peer-to-peer rule between tag:service machines. Services talk to each other over
+    //     the physical segment and the host rulesets, not over the overlay.
+  ],
+
+  // Intent checks, evaluated by `tailscale debug validate`. They do not enforce anything at
+  // runtime; they fail a validation run when the policy stops saying what it is meant to say.
+  "tests": [
+    {
+      "src": "tag:admin",
+      "accept": ["tag:control:8006", "tag:service:443", "tag:service:80"]
+    },
+    {
+      "src": "tag:user",
+      "accept": ["tag:service:443"],
+      "deny": ["tag:control:8006", "tag:control:443", "tag:user:*"]
+    }
+  ]
+}

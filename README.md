@@ -20,6 +20,39 @@ Build yourself an outpost.
 
 * * * * *
 
+## Design Assumptions
+
+Two assumptions sit under everything else here. Both show up in the configuration rather than in
+one place, so neither can be described as a single setting. If an assumption does not hold for your
+estate, the change is in the files named beside it.
+
+**There is an overlay network.** Each host carries a second, stable address on a WireGuard-class
+overlay, and each device that needs in-home access has an identity on it. The reference deployment
+uses Tailscale, so the placeholder address in these files is `100.64.0.0/10`; the requirement is
+the capability, not the vendor.
+
+This is not decorative. `syncthing` binds its sync ports to `${TAILSCALE_ADDR}` and `.env.example`
+asks for that address; the proxy publishes a second listener on its overlay address, because a
+device that is on the overlay only cannot route to the host's LAN address; both guest nftables
+templates define `TAILNET` and key rules off it; and every "reachable on the tailnet and the user
+LAN" line in the component list below depends on it. The device-class policy that separates an
+admin device from a family device is authored in [`net/`](./net/) as a template, since the classes
+are generic and the devices that occupy them are not.
+
+Without an overlay the composition still serves over the user LAN and the tunnel, but four things
+go away: the proxy's second listener, tailnet-only sync ports, device-class separation, and remote
+access that does not open the firewall. If your estate has no overlay, delete the `TAILSCALE_ADDR`
+mappings and the `TAILNET` defines. Do not leave them in place pointing at an address that does not
+exist: `docker compose` resolves a missing variable to an empty string, so the mapping becomes
+`:22000:22000` and the container fails at start rather than falling back.
+
+**One ingress, and every published port names an address.** Caddy on 443 is the only thing that
+serves a request from any lane, whether that request arrived over the LAN, the tunnel or the
+overlay. No service publishes on `0.0.0.0`; each port is bound to `BIND_ADDR`, the host's LAN
+address. A wildcard listener silently becomes a second ingress on every interface the host has,
+which is what the nftables templates exist to catch. The lanes and the controls are in the
+[exposure model](./docs/exposure-model.md).
+
 ## Components Overview
 
 - **Reverse Proxy, Internet Access, and IAM**
@@ -62,6 +95,8 @@ app host's nftables ruleset accepts those ports from the proxy host only.
 - [Exposure model](./docs/exposure-model.md) - the lanes and controls, which service sits in which,
   the user/server re-segmentation, the single-ingress invariant, the authentication policy, and the
   Cloudflare exit plan
+- [Overlay policy](./net/) - the device-class access policy as a template, the substitution rules,
+  and the rule that denial is the absence of a line
 - [East-west security](./docs/east-west.md) - why pfSense cannot filter traffic between the two
   servers, the layers that do, and the accepted residual risks
 - [Authentik OIDC runbook](./docs/authentik-oidc.md) - wiring single sign-on into Nextcloud and

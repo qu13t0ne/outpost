@@ -9,6 +9,10 @@ services:
       # - "${BIND_ADDR}:80:80"
       # Bound to the host LAN address, not 0.0.0.0: the single LAN ingress is Caddy on 443.
       - "${BIND_ADDR}:443:443"
+      # The tailnet listener. With no subnet router, the LAN address is unroutable from a
+      # tailnet-only device, so this second address is what gives the overlay a way in.
+      # Two addresses and no wildcard: that is the whole bind rule.
+      - "${TAILSCALE_ADDR}:443:443"
     environment:
       - EMAIL_FOR_ACME
       - CF_API_TOKEN
