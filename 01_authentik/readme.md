@@ -34,7 +34,8 @@ in [the OIDC runbook](../docs/authentik-oidc.md).
 
 ### 1. Environment
 
-Copy `.env.example` to `.env` and edit:
+Run `just init` to create `$OUTPOST_CONFIG_DIR/`, then edit `01_authentik/compose.env` (the values
+below) and its `app.env` (which holds `TZ`):
 
 | Variable               | Notes                                                              |
 | ---------------------- | ------------------------------------------------------------------ |
@@ -83,7 +84,7 @@ instead of loopback and proxy to it, and add that port to the application host's
 - Media: `$CONFIG_PATH/media`
 - Templates: `$CONFIG_PATH/custom-templates`
 - Certs: `$CONFIG_PATH/certs`
-- The `.env` file, which is gitignored and holds `AUTHENTIK_SECRET_KEY`
+- `$OUTPOST_CONFIG_DIR/01_authentik/compose.env`, which is gitignored and holds `AUTHENTIK_SECRET_KEY` and `PG_PASS`
 
 Restore the database before starting the stack. A restore without `AUTHENTIK_SECRET_KEY` keeps working
 for new logins but invalidates every existing session, so restore both together.

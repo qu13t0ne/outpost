@@ -10,9 +10,10 @@
 
 ### Initial
 
-- Copy `.env.example` to `.env`
-- Update `.env` as required
-- Docker compose up
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/` from `config.example/`, then edit
+  `nextcloud/compose.env` (its `PORT`, `HOST_IP` and `DATADIR`; `BIND_ADDR` is shared in
+  `outpost.env`).
+- Start with `just up nextcloud`.
 - Follow the mastercontainer instructions and startup process (first time)
 
 ### Caddyfile

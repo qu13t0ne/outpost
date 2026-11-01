@@ -5,8 +5,9 @@
 
 ## Setup
 
-- Copy `.env.example` to `.env` and edit as appropriate.
-- Start container.
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/`, then create this service's
+  `config.example/<service>/compose.env` from `.env.example` and edit it as appropriate.
+- Start the container with `just up <service>`.
 
 ## Reverse Proxy
 

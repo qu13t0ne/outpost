@@ -43,7 +43,8 @@ grep -n '2283' docker-compose.yml
 docker compose config | grep -A2 'published: "2283"'
 ```
 
-`BIND_ADDR` is the host's LAN address, in the same `.env` the other service directories use. The
+`BIND_ADDR` is the host's LAN address, the shared per-host fact in `outpost.env` that the other service
+directories use. The
 result must be one address, never `0.0.0.0` and never bare `2283:2283`. Re-apply this after every
 Immich upgrade, and check it with `ss -lntp | grep 2283` before calling the upgrade done.
 

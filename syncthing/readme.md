@@ -5,17 +5,20 @@
 
 ## Setup
 
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/` (with `syncthing/compose.env`, a header for the
+  shared per-host facts). Then:
 - Copy `template_docker-compose.override.yml` to `docker-compose.override.yml` and edit it for this server.
-  - Copy `.env.example` to `.env` and set `TAILSCALE_ADDR` to this host's tailnet address. The sync
+  - Set `TAILSCALE_ADDR` in `$OUTPOST_CONFIG_DIR/outpost.env` (a shared per-host fact) to this host's
+    tailnet address. The sync
     ports bind to it, so sync traffic never touches the user LAN.
   - `docker-compose.yml` holds defaults (container `syncthing`, PUID/PGID 1000, `America/New_York`,
-    config at `./conf`); set only what differs in the override.
+    config at `$OUTPOST_CONFIG_DIR/syncthing/conf`); set only what differs in the override.
   - Set `PUID` and `PGID` to the output of `id -u` and `id -g` for the sync folder owner.
   - **Exception:** if syncing into the Nextcloud data directory, see the [Nextcloud section](#nextcloud-aio-data-directory) below for required PUID/PGID values.
   - Add sync folder mounts (see [Mounting Host Folders](#mounting-host-folders)).
   - Choose the network mode (see [Network Mode](#network-mode)).
   - This file is gitignored, so local paths stay out of the repo.
-- Start the container with `docker compose up -d`. Compose merges the override file automatically.
+- Start the container with `just up syncthing`. Compose merges the override file automatically.
 - Open the Syncthing UI via the reverse proxy URL and complete initial configuration.
 
 ## Network Mode
@@ -92,7 +95,11 @@ In host mode Syncthing listens on the host ports directly, so host firewall rule
 
 ## Mounting Host Folders
 
-Sync folders are added as bind mounts in `docker-compose.override.yml` and then registered as folders inside the Syncthing UI. The container path (right side of the `:`) is what you enter in the Syncthing UI when adding a folder. Mounts in the override file are appended to the base `./conf:/config` mount; an override line targeting `/config` replaces it.
+Sync folders are added as bind mounts in `docker-compose.override.yml` and then registered as
+folders inside the Syncthing UI. The container path (right side of the `:`) is what you enter in the
+Syncthing UI when adding a folder. Mounts in the override file are appended to the base
+`$OUTPOST_CONFIG_DIR/syncthing/conf:/config` mount; an override line targeting `/config` replaces
+it.
 
 ### Generic Host Directory
 
@@ -115,7 +122,7 @@ Then in the Syncthing UI, add the folder path `/data/foldername`.
 
 Nextcloud AIO runs its containers with UID/GID `33` (`www-data`). To allow Syncthing to write into the Nextcloud data directory, **Syncthing must also run as UID/GID 33**.
 
-In `docker-compose.override.yml`, using the `NEXTCLOUD_DATADIR` value from the Nextcloud service's `.env`:
+In `docker-compose.override.yml`, using the `NEXTCLOUD_DATADIR` value from `$OUTPOST_CONFIG_DIR/nextcloud/compose.env`:
 
 ```yaml
 services:
@@ -195,7 +202,8 @@ Then in the Syncthing UI, add the folder path `/data/mynas` (or a subdirectory).
 ### Backup
 
 - Include this entire directory in backups, including the untracked `docker-compose.override.yml`.
-- The config directory (`./conf` unless overridden) contains all Syncthing configuration, device certificates, and folder metadata.
+- The config directory (`$OUTPOST_CONFIG_DIR/syncthing/conf` unless overridden) contains all
+  Syncthing configuration, device certificates, and folder metadata.
 
 ### Restore
 

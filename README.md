@@ -31,8 +31,9 @@ overlay, and each device that needs in-home access has an identity on it. The re
 uses Tailscale, so the placeholder address in these files is `100.64.0.0/10`; the requirement is
 the capability, not the vendor.
 
-This is not decorative. `syncthing` binds its sync ports to `${TAILSCALE_ADDR}` and `.env.example`
-asks for that address; the proxy publishes a second listener on its overlay address, because a
+This is not decorative. `syncthing` binds its sync ports to `${TAILSCALE_ADDR}` and
+`config.example/outpost.env` carries that address; the proxy publishes a second listener on its overlay
+address, because a
 device that is on the overlay only cannot route to the host's LAN address; both guest nftables
 templates define `TAILNET` and key rules off it; and every "reachable on the tailnet and the user
 LAN" line in the component list below depends on it. The device-class policy that separates an
@@ -102,6 +103,69 @@ app host's nftables ruleset accepts those ports from the proxy host only.
 - [Authentik OIDC runbook](./docs/authentik-oidc.md) - wiring single sign-on into Nextcloud and
   Immich, including break-glass and the usual failure modes
 - [Host System Setup](./docs/host-system-setup.md) - filesystem layout and Docker install
+- [Configuration model](./docs/config-model.md) - where personal configuration lives, how it is
+  resolved, why two env files per service, and how to migrate an existing `.env`
+
+## Admin And Dev Machine Prerequisites
+
+These are the tools used to author, lint and validate this repository from a workstation or build box
+that is **not** a deployment host. None of them turns the machine into a server, and none is required
+on the deploy host beyond Docker itself. `just check` prints `SKIP` for each tool it cannot find, so a
+missing one costs verification, not correctness.
+
+| Tool             | Used by                     | What it does                                                  |
+| ---------------- | --------------------------- | ------------------------------------------------------------- |
+| `just`           | every recipe                | runs the task definitions in the `justfile`                   |
+| `docker compose` | `just check`, run recipes   | validates and runs compose files; `config` needs no daemon    |
+| `gitleaks`       | `just check`, pre-commit    | scans for secrets before commit and push                      |
+| `trufflehog`     | history scan                | second secret engine; verifies whether a credential is live   |
+| `hadolint`       | `just check`                | lints `00_proxy/Dockerfile`                                    |
+
+`docker compose` is needed only for the `config` subcommand and `just check`. That subcommand parses
+and interpolates YAML without contacting the Docker daemon, so Docker Desktop is not required for
+validation. The `justfile` uses the spaced form `docker compose`, which is the v2 CLI plugin, not the
+old standalone `docker-compose`.
+
+### macOS
+
+```sh
+brew install just docker-compose gitleaks trufflehog hadolint
+```
+
+`docker-compose` installs the v2 plugin so the spaced form works. The other four are single binaries
+from their formulae.
+
+### Debian / Ubuntu
+
+```sh
+# just: packaged on Debian 13+ and Ubuntu 23.10+. Where apt has no package, use the official
+# installer instead.
+sudo apt install just
+#   curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+
+# docker compose v2 plugin (provides `docker compose`; no daemon needed for `config`).
+# On older releases add Docker's apt repo and install docker-compose-plugin.
+sudo apt install docker-compose-v2
+
+# trufflehog: official installer
+curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh \
+  | sh -s -- -b /usr/local/bin
+
+# gitleaks: release binary (see https://github.com/gitleaks/gitleaks/releases), or via Go below
+sudo wget -O /tmp/gitleaks.tar.gz \
+  https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+sudo tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks
+
+# hadolint: static binary (arm64: hadolint-Linux-arm64)
+sudo wget -O /usr/local/bin/hadolint \
+  https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+sudo chmod +x /usr/local/bin/hadolint
+```
+
+`gitleaks` and `trufflehog` are Go programs; `go install github.com/gitleaks/gitleaks/v8@latest` and
+`go install github.com/trufflesecurity/trufflehog/v3@latest` both work where a Go toolchain is present,
+writing to `$(go env GOPATH)/bin` (add that to `PATH`). Release pages are the source of truth for the
+current version; the version in the `gitleaks` URL above tracks `.pre-commit-config.yaml`.
 
 ## Installation and Setup
 
@@ -142,6 +206,24 @@ docker network create outpost
 This is not required for containers running on a different host, as published ports will be used instead.
 No container on the app host joins `outpost`: a Docker network cannot span hosts, so those services
 publish a port on their LAN address and Caddy reaches them over the user LAN.
+
+### Where Configuration Lives
+
+Personal configuration is not held in this repository. It is read from a directory that resolves in one
+place (the `justfile`), and `config.example/` is the only config-shaped thing the tree commits. The
+model, the two-env-file split, and the migration path are in [docs/config-model.md](./docs/config-model.md).
+
+Quickstart:
+
+```
+just init            # create $OUTPOST_CONFIG_DIR/ from config.example/ (default: $HOME/.config/outpost)
+# edit the real values in the files just init reported, per service
+just up 00_proxy     # start a service; reads $OUTPOST_CONFIG_DIR/00_proxy/compose.env and app.env
+```
+
+Every service recipe (`up`, `down`, `pull`, `logs`, `ps`) reads its configuration from the resolved
+directory, never from inside the tree. A directory that does not resolve is a failure that prints the
+fix, not a default that puts personal state back where it can be published.
 
 ### Launch Proxy
 

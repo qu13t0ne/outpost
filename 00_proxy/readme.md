@@ -26,11 +26,11 @@ Cloudflare Access policy on the tunnel. See [the exposure model](../docs/exposur
 
 ### Summary
 
-- Copy `Caddyfile.example` to `Caddyfile`
-- Copy `.env.example` to `.env`
-- Get Cloudflare API token
-- Edit `.env`
-- Edit `Caddyfile` to add config for desired sites and services
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/` from `config.example/`
+- Get the Cloudflare API token and the Cloudflare Tunnel token
+- Edit the proxy config: `outpost.env` (`BIND_ADDR`, `TAILSCALE_ADDR`, `APPDATA`),
+  `00_proxy/app.env` (the tokens, `EMAIL_FOR_ACME` and `DOMAIN`), and `00_proxy/Caddyfile` for the
+  desired sites and services
 - Follow additional setup instructions that follow
 
 ### Cloudflare Setup Part 1
@@ -46,19 +46,26 @@ Copy or leave this page open, you'll need it in the next step.
 - Create a Cloudflare Tunnel through the Cloudflare Dash Zero Trust UI at https://one.dash.cloudflare.com.
 - Copy the token it gives you. The easiest way to do this is to copy the *Run* command it gives you into a temporary text file. The full token isn't displayed in the UI. We'll need this in a second.
 
-### Configure .env file
+### Configure the proxy config
 
-- Create a `.env` file from the included [.env.example](./.env.example).
-- Edit the contents as appropriate and indicated in the file.
-- Make the following changes to the template:
-  - Add email for cert generation & renewal notifications
-  - Add the Cloudflare API token generated in the previous step
-  - Add the Cloudflare Tunnel token generated in the previous step
+- `just init` placed the proxy's config under the resolved directory (`$OUTPOST_CONFIG_DIR`), never
+  in the tree: `outpost.env` for the shared per-host facts, `00_proxy/app.env` for the tokens and
+  Caddy application config, and `00_proxy/Caddyfile` for the site blocks.
+  See [docs/config-model.md](../docs/config-model.md).
+- Edit the contents as appropriate and indicated in the files.
+- Make the following changes:
+  - In `outpost.env`, set `BIND_ADDR` (this host's LAN address) and `TAILSCALE_ADDR` (from `tailscale ip -4`).
+  - Add the email for cert generation & renewal notifications as `EMAIL_FOR_ACME` in `00_proxy/app.env`.
+  - Add the Cloudflare API token generated in the previous step as `CF_API_TOKEN` in `00_proxy/app.env`.
+  - Add the Cloudflare Tunnel token generated in the previous step as `TUNNEL_TOKEN` in
+    `00_proxy/compose.env` (it is interpolated into the tunnel command at start time, so it
+    belongs in the interpolation pool, not `app.env`).
   - Create a `JWT_SHARED_TOKEN` using a random alphanumeric string generator such as [this](https://www.grc.com/passwords.htm).
 
-### Create Caddyfile
+### The Caddyfile
 
-- Copy `Caddyfile.example` to `Caddyfile`
+- `just init` placed the Caddyfile at `$OUTPOST_CONFIG_DIR/00_proxy/Caddyfile`, which the compose file
+  mounts into the container. Edit it there.
 
 ### Edit Caddyfile
 
@@ -69,7 +76,7 @@ For initial testing, make sure the Caddyfile is as follows:
 
 ### Starting & Managing Containers
 
-Start the containers with the standard `docker compose up -d` command.
+Start the containers with `just up 00_proxy`, which feeds the resolved config to docker compose.
 
 To reload the Caddy container after Caddyfile edits, it is easiest to just restart the container (`docker compose restart caddy`).
 
@@ -83,13 +90,13 @@ Any other `caddy` commands can be run in the container by replacing `reload` abo
 
 ### Backup
 
-- Include this entire directory in backups.
-- Include the APPDATA directory defined in the *.env* file, if pointing elsewhere
+- Run `just backup 00_proxy` for the full checklist; it names the config directory paths, not a `.env`.
+- Include the `APPDATA` directory defined in `outpost.env`, if pointing elsewhere
 
 ### Restore
 
-- Replace relevant directory(ies) from backup.
-- Launch container.
+- Run `just restore 00_proxy` for the checklist; it names the config directory paths.
+- Replace the relevant directory(ies) from backup, and launch the container with `just up 00_proxy`.
 
 ## Resources
 

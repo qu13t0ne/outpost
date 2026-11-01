@@ -5,9 +5,10 @@
 
 ## Setup
 
-- Copy `.env.example` to `.env`
-- Modify `.env` as needed
-- Run container
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/` from `config.example/`, then edit
+  `cyberchef/compose.env` (its `PORT`; `BIND_ADDR` is shared in `outpost.env`).
+  See [the configuration model](../docs/config-model.md).
+- Start the container with `just up cyberchef`.
 
 ## Reverse Proxy
 

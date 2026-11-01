@@ -5,8 +5,10 @@
 
 ## Setup
 
-- Copy `.env.example` to `.env` and edit as appropriate.
-- Start container.
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/` from `config.example/`, then edit
+  `speedtest-tracker/compose.env` (its `PORT` and `CONFIG_PATH`) and `app.env` (its settings and
+  secrets, including `APP_KEY`). See [the configuration model](../docs/config-model.md).
+- Start the container with `just up speedtest-tracker`.
 
 ## Reverse Proxy
 

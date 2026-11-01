@@ -5,9 +5,10 @@
 
 ## Setup
 
-- Copy `.env.example` to `.env`
-- Modify `.env` as needed
-- Run container
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/` from `config.example/`, then edit
+  `wallabag/compose.env` (its `PORT`, database credentials, `DATADIR`, and mail; `BIND_ADDR` is
+  shared in `outpost.env`).
+- Start the container with `just up wallabag`.
 
 ## Reverse Proxy
 

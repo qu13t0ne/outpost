@@ -19,7 +19,9 @@ It's general best practice to run any apps / functions on a separate partition t
 I've configured this project to default to _Option 2_ above. The `/srv` directory is assumed to be on a separate drive from the OS.
 
 - Docker is configured (see _Docker Daemon Settings_ below) to use `/srv/docker` as the default location for docker-related files (containers, volumes, logs, etc.) instead of the standard `/var/lib/docker`.
-- Containers and services will by default save persistent data to various folders in `/srv`, as indicated in the `.env.example` files.
+- Containers and services will by default save persistent data to various folders in `/srv`, as
+  indicated in the `config.example/` env files: `outpost.env` for the shared per-host paths, and
+  each service's `compose.env`.
 - Some services may also use `network_mode: host` instead of bridge networking. In that case, the host firewall controls access directly on the exposed ports, and bind mounts should point at actual local filesystem paths on the host. The Syncthing host-network variant is an example of this pattern.
 
 ### Optional NFS Considerations

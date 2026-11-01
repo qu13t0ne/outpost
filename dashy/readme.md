@@ -5,9 +5,11 @@
 
 ## Setup
 
-- Create `.env` from `.env.example`
-    - Validate UID and GID by running `id -u` and `id -g`
-- Run the container
+- Run `just init` to create `$OUTPOST_CONFIG_DIR/` from `config.example/`, then edit
+  `dashy/compose.env` (its `PORT`, `MY_UID` and `MY_GID`; `BIND_ADDR` is shared in
+  `outpost.env`).
+    - Validate UID and GID by running `id -u` and `id -g`. See [the configuration model](../docs/config-model.md).
+- Start the container with `just up dashy`.
 
 ### Reverse Proxy
 
