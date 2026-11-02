@@ -22,40 +22,54 @@ jobs:
         run: |
           set -uo pipefail
           fail=0
+          # Mirror the `check` recipe in the justfile. Only deployable services are validated;
+          # x_archive/ (retired), template/ (a scaffold) and config.example/ (the source tree)
+          # are excluded. The compose files reach their env and mount paths through
+          # OUTPOST_CONFIG_DIR, so a throwaway copy of config.example/ is fed to them; the real
+          # config directory is never read from or written into the repository.
+          if ! tracked_compose=$(git ls-files -- '**/docker-compose.yml' 2>/dev/null); then
+            echo "FAIL: git ls-files failed; run inside the repository checkout"
+            exit 1
+          fi
+          services() {
+            printf '%s\n' "$tracked_compose" | grep -vE '(^|/)(x_archive|template|config.example)/' | sort
+          }
+          if [ -z "$(services)" ]; then
+            echo "FAIL: no tracked compose files found to check"
+            exit 1
+          fi
+          if [ ! -d config.example ] || [ -z "$(find config.example -type f 2>/dev/null)" ]; then
+            echo "FAIL config.example/ is missing or empty"
+            exit 1
+          fi
+
           # The temp tree mirrors the repository layout, so relative references such as
-          # `extends: {file: ../compose.common.yml}` still resolve.
+          # `extends: {file: ../compose.common.yml}` still resolve, and compose is run from inside
+          # the mirror, never the real service directory.
+          tmp=$(mktemp -d)
+          cfg="$tmp/cfg"
+          cp -R config.example/. "$cfg"
+          mkdir -p "$tmp/root"
+          [ -f compose.common.yml ] && cp compose.common.yml "$tmp/root/"
+          export OUTPOST_CONFIG_DIR="$cfg"
+
           while IFS= read -r compose; do
-            dir=$(dirname "$compose")
-            dir=${dir#./}
-            work=$(mktemp -d)
-            mkdir -p "$work/root/$dir"
-            if [ -f compose.common.yml ]; then
-              cp compose.common.yml "$work/root/"
-            fi
-            cp "$dir/docker-compose.yml" "$work/root/$dir/"
-            if [ -f "$dir/docker-compose.override.yml" ]; then
-              cp "$dir/docker-compose.override.yml" "$work/root/$dir/"
-            fi
-            envlabel="none"
-            if [ -f "$dir/.env" ]; then
-              cp "$dir/.env" "$work/root/$dir/.env"
-              envlabel=".env"
+            dir=$(dirname "$compose"); dir=${dir#./}
+            mkdir -p "$tmp/root/$dir"
+            cp "$dir/docker-compose.yml" "$tmp/root/$dir/"
+            [ -f "$dir/docker-compose.override.yml" ] && cp "$dir/docker-compose.override.yml" "$tmp/root/$dir/"
+            envfiles=( --env-file "$cfg/outpost.env" )
+            [ -f "$cfg/$dir/compose.env" ] && envfiles+=( --env-file "$cfg/$dir/compose.env" )
+            echo "== $dir"
+            if ( cd "$tmp/root/$dir" && docker compose "${envfiles[@]}" config -q ); then
+              echo "ok   $dir"
             else
-              for candidate in .env.example template_env template-env; do
-                if [ -f "$dir/$candidate" ]; then
-                  cp "$dir/$candidate" "$work/root/$dir/.env"
-                  envlabel="$candidate"
-                  break
-                fi
-              done
-            fi
-            echo "== $dir (env: $envlabel)"
-            if ! ( cd "$work/root/$dir" && docker compose config -q ); then
               echo "FAIL $dir"
               fail=1
             fi
-            rm -rf "$work"
-          done < <(find . -name docker-compose.yml -not -path './.git/*' | sort)
+          done < <(services)
+
+          rm -rf "$tmp"
           exit "$fail"
 
   gitleaks:
