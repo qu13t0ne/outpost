@@ -82,12 +82,23 @@ check:
 
     # x_archive/ and template/ hold non-deployable material (archived services and a
     # scaffold) and are not checked; the deployable services all have a docker-compose.yml
-    # and a matching config.example/ directory.
+    # and a matching config.example/ directory. The enumeration is the repository's
+    # *tracked* compose files, not a find(1) over the disk: a service dir the repository
+    # does not ship (immich, a local second dashy instance) is outside the config model, so
+    # the check must not read it, let alone FAIL on it. See docs/config-model.md.
+    # Fail closed: in a tree with no .git, git ls-files yields nothing and the sweep would
+    # silently validate nothing while reporting success.
+    if ! tracked_compose=$(git ls-files -- '**/docker-compose.yml' 2>/dev/null); then
+      echo "FAIL: git ls-files failed; run just check inside the repository checkout"
+      exit 1
+    fi
     services() {
-      find . -name docker-compose.yml \
-        -not -path './.git/*' -not -path './x_archive/*' \
-        -not -path './template/*' -not -path './config.example/*' | sort
+      printf '%s\n' "$tracked_compose" | grep -vE '(^|/)(x_archive|template|config.example)/' | sort
     }
+    if [ -z "$(services)" ]; then
+      echo "FAIL: no tracked compose files found to check"
+      exit 1
+    fi
 
     echo "== docker compose config =="
     if ! have docker || ! docker compose version >/dev/null 2>&1; then
@@ -179,7 +190,21 @@ init target="":
     fi
 
     # Rule 3: the example tree must cover every deployable service that has a compose file.
-    # A silently incomplete tree fails hours later, on a host, as a missing variable.
+    # A silently incomplete tree fails hours later, on a host, as a missing variable. The set
+    # is the repository's tracked compose files, so a host's gitignored service dir (immich, a
+    # local second dashy instance) is outside the model and cannot abort init. Fail closed:
+    # with no .git, git ls-files yields nothing and Rule 3 would verify nothing.
+    if ! tracked_compose=$(git ls-files -- '**/docker-compose.yml' 2>/dev/null); then
+      echo "init: git ls-files failed; run just init inside the repository checkout" >&2
+      exit 1
+    fi
+    services() {
+      printf '%s\n' "$tracked_compose" | grep -vE '(^|/)(x_archive|template|config.example)/' | sort
+    }
+    if [ -z "$(services)" ]; then
+      echo "init: no tracked compose files found; refusing to call config.example/ complete" >&2
+      exit 1
+    fi
     missing=0
     while IFS= read -r compose; do
       dir=$(dirname "$compose"); dir=${dir#./}
@@ -187,9 +212,7 @@ init target="":
         echo "init: config.example/ is missing $dir/ (repo has $dir/docker-compose.yml but no example)" >&2
         missing=1
       fi
-    done < <(find . -name docker-compose.yml \
-      -not -path './.git/*' -not -path './x_archive/*' \
-      -not -path './template/*' -not -path './config.example/*' | sort)
+    done < <(services)
     if [ "$missing" -ne 0 ]; then
       echo "init: aborting: the example tree is incomplete" >&2
       exit 1

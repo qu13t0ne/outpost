@@ -197,6 +197,17 @@ as an artifact (see "Notes and exceptions").
   git excludes (`**/conf/`), and Docker creates the mount point on first start. The first `just up
   syncthing` creates it; after that it holds the device identity and is the config that `just backup
   syncthing` names.
+- **`dashy/user-data/`.** Same class as `syncthing/conf/`, and it fails the same silent way: the compose
+  file mounts `${OUTPOST_CONFIG_DIR}/dashy/user-data`, the tree does not ship the directory, Docker
+  creates it empty on first start, and a recreate that finds it empty starts dashy with no config. The
+  first `just up dashy` creates it; `just backup dashy` names it.
+- **A service the repository does not track is outside this model.** Two live examples: the vendor
+  `immich` compose, gitignored because every upgrade replaces it, and a local `dashy_admin.custom`
+  second instance, gitignored by the `**/*.custom` rule. Such a directory is not enumerated by
+  `just init` or `just check` - both read the repository's tracked set, not the disk - so its presence
+  cannot abort `init` or paint a `FAIL` in `check`, and the model makes no claim about its contents. Its
+  ports are bound literally, by section 3 of `03-binds-102.md`. That is the design: the model covers what
+  the repository ships, and a service it does not ship carries its own configuration.
 - **`00_proxy/Caddyfile`.** The example ships once, at `config.example/00_proxy/Caddyfile` (moved from
   `00_proxy/Caddyfile.example` by git rename, so history is preserved). The old per-directory
   `Caddyfile.example` and its `!**/Caddyfile.example` ignore rule are gone: two copies of the same
