@@ -48,6 +48,40 @@ directories use. The
 result must be one address, never `0.0.0.0` and never bare `2283:2283`. Re-apply this after every
 Immich upgrade, and check it with `ss -lntp | grep 2283` before calling the upgrade done.
 
+## NFS data storage
+
+Immich keeps its database on local storage, but `UPLOAD_LOCATION` can point at an NFS share. When it
+does, both containers need the share's numeric UID and GID, or they write files the server cannot read.
+
+Record the IDs on the client that holds the mount:
+
+```sh
+id
+getent group users
+```
+
+Add them to `.env`:
+
+```sh
+USER_ID=1000
+GROUP_ID=100
+```
+
+Then set `user:` on both services in `docker-compose.yml`. The file is gitignored for the same reason the
+port bind in the previous section is, so this is a step in the procedure rather than a fact in the
+repository, and an upgrade replaces it:
+
+```yaml
+services:
+  immich-server:
+    user: ${USER_ID}:${GROUP_ID}
+
+  immich-machine-learning:
+    user: ${USER_ID}:${GROUP_ID}
+```
+
+The numbers above are examples. Use the ones `id` and `getent` print.
+
 ## Resources
 
 - https://docs.immich.app/install/docker-compose
